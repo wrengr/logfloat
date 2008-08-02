@@ -2,7 +2,7 @@
 -- wren ng thornton <wren@cpan.org>                 ~ 2008.08.01
 ----------------------------------------------------------------
 
-Name:           numbers-logfloat
+Name:           logfloat
 Version:        0.8.1
 Cabal-Version:  >= 1.2
 Build-Type:     Custom
@@ -13,7 +13,7 @@ License-File:   LICENSE
 Author:         wren ng thornton
 Maintainer:     wren@community.haskell.org
 Homepage:       http://code.haskell.org/~wren/
-Category:       List
+Category:       Data, Math, Natural Language Processing
 Synopsis:       Log-domain floating point numbers
 Description:    This module presents a class for storing numbers
                 in the log-domain. The main reason for doing this
@@ -24,7 +24,7 @@ Description:    This module presents a class for storing numbers
 Library
     Exposed-Modules: Data.Number.LogFloat
     Build-Depends:   base
-    Ghc-Options:     -O2 -fvia-C -optc-O2
+    Ghc-Options:     -O2 -fvia-C -optc-O3
 
 ----------------------------------------------------------------
 ----------------------------------------------------------- fin.

@@ -16,7 +16,7 @@ http://www.randomhacks.net/articles/2007/02/10/map-fusion-and-haskell-performanc
 
 > -- {-# OPTIONS_GHC -ddump-simpl-stats #-}
 >
-> {-# OPTIONS_GHC -O2 -fvia-C -optc-O2 #-}
+> {-# OPTIONS_GHC -O2 -fvia-C -optc-O3 #-}
 
 Version History
 (v0.8) Did a bunch of tweaking. Things should be decent now
