@@ -24,7 +24,7 @@ preHaddockScript _ _ = do
     putStrLn "Building lhs2hs..."
     system "ghc --make lhs2hs.hs -o lhs2hs"
     putStrLn "Illiterating Data.Number.LogFloat for Haddock..."
-    system "cat Data/Number/LogFloat.lhs | ./lhs2hs > Data/Number/LogFloat.hs"
+    system "./lhs2hs Data/Number/LogFloat.lhs Data/Number/LogFloat.hs"
     return emptyHookedBuildInfo
 
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env runhaskell
 -- A trivial converter from literate Haskell to plain Haskell
 -- wren ng thornton <wren@commuity.haskell.org>     ~ 2008.08.01
 ----------------------------------------------------------------
@@ -11,17 +12,36 @@
 
 module Main (main) where
 
-import Data.Char     (isSpace)
-import Control.Monad (unless)
-import System.IO     (Handle, hIsEOF, stdin, stdout)
+import System.Environment (getArgs)
+import System.Exit        (exitFailure)
+import System.IO          (Handle, hIsEOF, stdin, stdout, withFile, IOMode(..))
+import Data.Char          (isSpace)
+import Control.Monad      (unless)
 import qualified Data.ByteString.Char8 as S
 ----------------------------------------------------------------
 
 -- TODO: get filenames from getArgs, etc
 main :: IO ()
-main  = lhs2hs stdin stdout
+main  = do
+    args <- getArgs
+    case args of
+         []         -> runLhs2hs "-" "-"
+         [inF]      -> runLhs2hs inF "-"
+         [inF,outF] -> runLhs2hs inF outF
+         _          -> do putStrLn "Usage: lhs2hs [infile [outfile]]"
+                          exitFailure
+    where
+    {-# INLINE runLhs2hs #-}
+    runLhs2hs inF outF = withFH inF ReadMode stdin (\inH -> 
+                             withFH outF WriteMode stdout (\outH ->
+                                 lhs2hs inH outH))
+{-# INLINE withFH #-}
+withFH :: FilePath -> IOMode -> Handle -> (Handle -> IO r) -> IO r
+withFH "-"  _    fh act = act fh
+withFH path mode _  act = withFile path mode act
 
 
+----------------------------------------------------------------
 -- | The main routine
 lhs2hs         :: Handle -> Handle -> IO ()
 lhs2hs inH outH = start
