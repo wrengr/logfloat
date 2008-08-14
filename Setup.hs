@@ -13,7 +13,7 @@ import Distribution.PackageDescription    (HookedBuildInfo
 import System.Cmd                         (system)
 
 main :: IO ()
-main  = defaultMainWithHooks defaultUserHooks
+main  = defaultMainWithHooks simpleUserHooks
       { preHaddock = preHaddockScript
       , postClean  = postCleanScript
       }
