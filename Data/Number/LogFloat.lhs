@@ -29,7 +29,7 @@ Version History
 (v0.1) Initial version created for hw5 for NLP with Jason Eisner.
 
 ----------------------------------------------------------------
-                                                    ~ 2008.08.01
+                                                    ~ 2008.08.15
 |
 Module      :  Data.Number.LogFloat
 Copyright   :  Copyright (c) 2007--2008 wren ng thornton
@@ -40,11 +40,14 @@ Portability :  portable
 
 This module presents a class for storing numbers in the log-domain.
 The main reason for doing this is to prevent underflow when multiplying
-many probabilities as is done in Hidden Markov Models. It is also
-helpful for preventing overflow. In certain rare cases it may speed
-up computations (addition is faster than multiplication, but
-logarithms are really slow), but the primary goal is to improve
-accuracy of results.
+many small probabilities as is done in Hidden Markov Models and
+other statistical models often used for natural language processing.
+The log-domain also helps prevent overflow when multiplying many
+large numbers. In rare cases it can speed up numerical computation
+(since addition is faster than multiplication, though logarithms
+are exceptionally slow), but the primary goal is to improve accuracy
+of results. A secondary goal has been to maximize efficiency since
+these computations are frequently done within a /O(n^3)/ loop.
 
 The 'LogFloat' of this module is restricted to non-negative numbers
 for efficiency's sake, see the forthcoming "Data.Number.LogFloat.Signed"
