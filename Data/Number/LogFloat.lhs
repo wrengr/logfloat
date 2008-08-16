@@ -60,6 +60,15 @@ for doing signed log-domain calculations.
 >     -- | "GHC.Real" defines 'infinity' and 'notANumber' as
 >     -- 'Rational'. We export variants which are polymorphic because
 >     -- that can be more helpful at times.
+>     -- 
+>     -- N.B. At present these constants are broken for 'Ratio'
+>     -- types including 'Rational', since @Ratio@ types do not
+>     -- typically permit a zero denominator. In GHC (6.8.2) the
+>     -- result for 'infinity' is a rational with a numerator
+>     -- sufficiently large that 'fromRational' will yield infinity
+>     -- for @Float@ and @Double@. In Hugs (September 2006) it
+>     -- yields an arithmetic overflow error. For GHC, our 'notANumber'
+>     -- yields @0%1@ rather than @0%0@ as "GHC.Real" does.
 >
 >       infinity, negativeInfinity, notANumber
 >
@@ -108,7 +117,7 @@ had some issues inducing 'Ord' on @x@ and @y@, even though they're
 The type signature is necessary for them not to default to Double.
 
 > infinity, negativeInfinity, notANumber :: (Fractional a) => a
-> infinity         = 1 / 0               -- == fromRational GHC.Real.infinity
+> infinity         = toFractional (1/0)  -- == fromRational GHC.Real.infinity
 > {-# SPECIALIZE negativeInfinity :: Double #-}
 > negativeInfinity = negate infinity
 > notANumber       = infinity - infinity -- == fromRational GHC.Real.notANumber
