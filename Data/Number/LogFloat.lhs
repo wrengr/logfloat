@@ -1,4 +1,4 @@
-%% This module should be run through lhs2hs.pl before running through
+%% This module should be run through lhs2hs before running through
 %% Haddock. (N.B. rember to include a copy in the cabalized)
 %%
 %% This module was originally translated from my Perl module
@@ -56,12 +56,18 @@ for doing signed log-domain calculations.
 
 > module Data.Number.LogFloat
 >     (
+>     -- * Documentation Note
+>     -- | If you see no module description above, then the @lhs2hs@
+>     -- script was not run correctly. Please rebuild the documentation
+>     -- or see:
+>     -- <http://code.haskell.org/~wren/logfloat/dist/doc/html/logfloat/>
+>
 >     -- * IEEE floating-point special values
 >     -- | "GHC.Real" defines 'infinity' and 'notANumber' as
 >     -- 'Rational'. We export variants which are polymorphic because
 >     -- that can be more helpful at times.
 >     -- 
->     -- N.B. At present these constants are broken for 'Ratio'
+>     -- BUG: At present these constants are broken for @Ratio@
 >     -- types including 'Rational', since @Ratio@ types do not
 >     -- typically permit a zero denominator. In GHC (6.8.2) the
 >     -- result for 'infinity' is a rational with a numerator
