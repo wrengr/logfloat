@@ -1,8 +1,8 @@
 ----------------------------------------------------------------
 Name:           logfloat
-Version:        0.8.4
+Version:        0.8.5
 Cabal-Version:  >= 1.2
-Build-Type:     Custom
+Build-Type:     Simple
 Stability:      stable
 Copyright:      Copyright (c) 2007--2008 wren ng thornton
 License:        BSD3

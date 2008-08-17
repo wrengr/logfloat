@@ -111,9 +111,15 @@ import Data.Number.Transfinite
 -- versions of GHC have this behavior already, but older versions
 -- and Hugs do not.
 --
+-- This function will raise an error when taking the log of negative
+-- numbers, rather than returning 'notANumber' as the newer GHC
+-- implementation does. The reason being that typically this is a
+-- logical error, and @notANumber@ allows the error to propegate
+-- silently.
+--
 -- In order to improve portability, the 'Transfinite' class is
 -- required to indicate that the 'Floating' type does in fact have
--- a representation for negative infinity. Both native @Floating@
+-- a representation for negative infinity. Both native floating
 -- types ('Double' and 'Float') are supported. If you define your
 -- own instance of @Transfinite@, verify the above equation holds
 -- for your @0@ and @negativeInfinity@. If it doesn't, then you
@@ -270,7 +276,7 @@ logFromLogFloat (LogFloat x) = toFractional x
 -- the thunk yet) then we want to crash before printing the
 -- constructor, rather than after.  N.B. This means the show will
 -- underflow\/overflow in the same places as normal doubles since
--- we underflow at the exp. Perhaps this means we should show the
+-- we underflow at the @exp@. Perhaps this means we should show the
 -- log-domain value instead.
 
 instance Show LogFloat where
