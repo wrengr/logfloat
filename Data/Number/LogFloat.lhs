@@ -233,14 +233,14 @@ can't remove it, then we need to rethink all four constructors\/destructors.
 overflow\/underflow.
 
 > {-# SPECIALIZE fromLogFloat :: LogFloat -> Double #-}
-> fromLogFloat :: (Floating a) => LogFloat -> a
+> fromLogFloat :: (Floating a, Transfinite a) => LogFloat -> a
 > fromLogFloat (LogFloat x) = toFractional (exp x)
 
 
 | Return the log-domain value itself without costly conversion
 
 > {-# SPECIALIZE logFromLogFloat :: LogFloat -> Double #-}
-> logFromLogFloat :: (Floating a) => LogFloat -> a
+> logFromLogFloat :: (Floating a, Transfinite a) => LogFloat -> a
 > logFromLogFloat (LogFloat x) = toFractional x
 
 
