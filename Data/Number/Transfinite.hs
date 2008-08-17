@@ -39,21 +39,20 @@ import qualified Prelude (isInfinite, isNaN)
 -- | Many numbers are not 'Bounded' yet, even though they can
 -- represent arbitrarily large values, they are not necessarily
 -- able to represent transfinite values such as infinity itself.
--- This class is for types which are able to represent such values.
--- Notably, this class does not require the type to be 'Fractional'
--- nor 'Floating' since integral types could also have representations
--- for transfinite values.
+-- This class is for types which are capable of representing such
+-- values. Notably, this class does not require the type to be
+-- 'Fractional' nor 'Floating' since integral types could also have
+-- representations for transfinite values.
 --
 -- In particular, this class extends the 'Ord' projection to have
 -- a maximum value 'infinity' and a minimum value 'negativeInfinity',
 -- as well as an exceptional value 'notANumber'. All the natural
--- laws regarding @infinity@ and @negativeInfinity@ should pertain
--- (e.g. @negate infinity = negativeInfinity@, @infinity + x =
--- infinity@ when @x@ is finite, etc.). Additionally, @infinity -
--- infinity@ should return @notANumber@ (as should @0\/0@ and
--- @infinity\/infinity@ if the type is @Fractional@). Any operations
--- on @notANumber@ should also return @notANumber@, and any equality
--- or ordering comparison on @notANumber@ must return @False@.
+-- laws regarding @infinity@ and @negativeInfinity@ should pertain.
+-- Additionally, @infinity - infinity@ should return @notANumber@
+-- (as should @0\/0@ and @infinity\/infinity@ if the type is
+-- @Fractional@). Any operations on @notANumber@ will also return
+-- @notANumber@, and any equality or ordering comparison on
+-- @notANumber@ must return @False@.
 --
 -- Minimum complete definition is @infinity@, @isInfinite@, and
 -- @isNaN@.
@@ -63,8 +62,9 @@ class (Num a, Ord a) => Transfinite a where
     -- | A transfinite value which is greater than all finite values.
     -- Adding or subtracting any finite value is a no-op. As is
     -- multiplying by any non-zero positive value (including
-    -- @infinity@), and dividing by any non-zero positive finite
-    -- value.
+    -- @infinity@), and dividing by any positive finite value. Also
+    -- obeys the law @negate infinity = negativeInfinity@ with all
+    -- appropriate ramifications.
     infinity         :: a
     
     -- | A transfinite value which is less than all finite values.
