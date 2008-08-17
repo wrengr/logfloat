@@ -12,8 +12,8 @@
 
 -- {-# OPTIONS_GHC -ddump-simpl-stats #-}
 
-{-# OPTIONS_GHC -Wall -Werror        #-}
-{-# OPTIONS_GHC -O2 -fvia-C -optc-O3 #-}
+{-# OPTIONS_GHC -Wall -Werror #-}
+{-# OPTIONS_GHC -O2 -fvia-C -optc-O3 -fexcess-precision #-}
 
 -- Version History
 -- (v0.8.5) Gave up and converted from lhs to hs so Hackage docs work
@@ -155,6 +155,8 @@ toFractional  = fromRational . toRational
                              toFractional (toFractional x) = toFractional x
 "toFractional.toFractional"  toFractional . toFractional   = toFractional
     #-}
+-- TODO: also add @toRational . fromRational = id@ rules and check
+-- if they ever fire
 
 
 ----------------------------------------------------------------
@@ -164,6 +166,7 @@ toFractional  = fromRational . toRational
 errorOutOfRange    :: String -> a
 errorOutOfRange fun = error $ "Data.Number.LogFloat."++fun
                            ++ ": argument out of range"
+-- Should we NOINLINE? check the core
 
 
 -- | We need these guards in order to ensure some invariants.

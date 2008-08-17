@@ -22,7 +22,7 @@ Library
     Exposed-Modules: Data.Number.LogFloat
                    , Data.Number.Transfinite
     Build-Depends:   base
-    Ghc-Options:     -O2 -fvia-C -optc-O3
+    Ghc-Options:     -O2 -fvia-C -optc-O3 -fexcess-precision 
 
 ----------------------------------------------------------------
 ----------------------------------------------------------- fin.
