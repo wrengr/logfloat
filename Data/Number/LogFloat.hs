@@ -16,6 +16,7 @@
 {-# OPTIONS_GHC -O2 -fvia-C -optc-O3 -fexcess-precision #-}
 
 -- Version History
+-- (v0.8.6) Removed buggy RULES
 -- (v0.8.5) Gave up and converted from lhs to hs so Hackage docs work
 -- (v0.8.4) Broke out Transfinite
 -- (v0.8.3) Documentation updates
@@ -30,7 +31,7 @@
 -- (v0.1) Initial version created for hw5 for NLP with Jason Eisner.
 --
 ----------------------------------------------------------------
---                                                  ~ 2008.08.16
+--                                                  ~ 2008.08.17
 -- |
 -- Module      :  Data.Number.LogFloat
 -- Copyright   :  Copyright (c) 2007--2008 wren ng thornton
@@ -93,14 +94,19 @@ import Data.Number.Transfinite
 "exp.log"            exp . log   = id
     #-}
 
--- These are general rule versions of our operators for 'LogFloat'.
--- I had some issues inducing 'Ord' on @x@ and @y@, even though
--- they're 'Num' so I can't do "(+)\/log" and "(-)\/log" so easily.
-
-{-# RULES
-"(*)/log"  forall x y. log x * log y = log (x + y)
-"(/)/log"  forall x y. log x / log y = log (x - y)
-    #-}
+-- We'd like to be able to take advantage of general rule versions
+-- of our operators for 'LogFloat', with rules like @log x + log y
+-- = log (x * y)@ and @log x - log y = log (x / y)@. However the
+-- problem is that those equations could be driven in either direction
+-- depending on whether we think time performance or non-underflow
+-- performance is more important, and the answers may be different
+-- at every call site.
+--
+-- Since we implore users to do normal-domain computations whenever
+-- it would not degenerate accuracy, we should not rewrite their
+-- decisions in any way. The log\/exp fusion strictly improves both
+-- time and accuracy, so those are safe. But the buck stops with
+-- them.
 
 
 ----------------------------------------------------------------
