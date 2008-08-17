@@ -1,4 +1,7 @@
 ----------------------------------------------------------------
+-- wren ng thornton <wren@community.haskell.org>    ~ 2008.08.17
+----------------------------------------------------------------
+
 Name:           logfloat
 Version:        0.8.6
 Cabal-Version:  >= 1.2
@@ -22,7 +25,8 @@ Library
     Exposed-Modules: Data.Number.LogFloat
                    , Data.Number.Transfinite
     Build-Depends:   base
-    Ghc-Options:     -O2 -fvia-C -optc-O3 -fexcess-precision 
+-- Are these really necessary, or is it enough to have them in LogFloat.hs?
+    Ghc-Options:     -O2 -fvia-C -optc-O3 -fexcess-precision -fglasgow-exts
 
 ----------------------------------------------------------------
 ----------------------------------------------------------- fin.
