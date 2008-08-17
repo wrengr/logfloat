@@ -16,6 +16,7 @@ http://www.randomhacks.net/articles/2007/02/10/map-fusion-and-haskell-performanc
 
 > -- {-# OPTIONS_GHC -ddump-simpl-stats #-}
 >
+> {-# OPTIONS_GHC -Wall -Werror        #-}
 > {-# OPTIONS_GHC -O2 -fvia-C -optc-O3 #-}
 
 Version History
@@ -29,7 +30,7 @@ Version History
 (v0.1) Initial version created for hw5 for NLP with Jason Eisner.
 
 ----------------------------------------------------------------
-                                                    ~ 2008.08.15
+                                                    ~ 2008.08.16
 |
 Module      :  Data.Number.LogFloat
 Copyright   :  Copyright (c) 2007--2008 wren ng thornton
@@ -38,7 +39,7 @@ Maintainer  :  wren@community.haskell.org
 Stability   :  stable
 Portability :  portable
 
-This module presents a class for storing numbers in the log-domain.
+This module presents a type for storing numbers in the log-domain.
 The main reason for doing this is to prevent underflow when multiplying
 many small probabilities as is done in Hidden Markov Models and
 other statistical models often used for natural language processing.

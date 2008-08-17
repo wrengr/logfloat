@@ -1,6 +1,6 @@
 ----------------------------------------------------------------
 Name:           logfloat
-Version:        0.8.2
+Version:        0.8.4
 Cabal-Version:  >= 1.2
 Build-Type:     Custom
 Stability:      stable
@@ -20,6 +20,7 @@ Description:    This module presents a class for storing numbers
 
 Library
     Exposed-Modules: Data.Number.LogFloat
+                   , Data.Number.Transfinite
     Build-Depends:   base
     Ghc-Options:     -O2 -fvia-C -optc-O3
 
