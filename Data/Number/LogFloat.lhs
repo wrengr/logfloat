@@ -87,8 +87,10 @@ for doing signed log-domain calculations.
 
 Try to add in some optimizations. Why the first few need to be down
 here and localized to the module, I don't know. We don't do anything
-foolish like this, but our clients might or they might be generated
-by other code transformations.
+foolish like this, but our clients might, or they might be generated
+by other code transformations. Note that due to the fuzz, these
+equations are not actually true, even though they are mathematically
+correct.
 
 > {-# RULES
 > "log/exp"  forall x. log (exp x) = x
@@ -132,7 +134,8 @@ when dealing with @LogFloat@s.
 | The most generic numeric converter I can come up with. All the
 built-in numeric types are 'Real', though 'Int' and 'Integer' aren't
 'Fractional'. Beware that converting transfinite values into @Ratio@
-types is non-portable, as discussed in "Data.Number.Transfinite".
+types is error-prone and non-portable, as discussed in
+"Data.Number.Transfinite".
 
 > {-# SPECIALIZE toFractional :: (Real a)       => a -> Double #-}
 > {-# SPECIALIZE toFractional :: (Fractional b) => Double -> b #-}
