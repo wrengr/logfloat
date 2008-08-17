@@ -20,6 +20,9 @@ http://www.randomhacks.net/articles/2007/02/10/map-fusion-and-haskell-performanc
 > {-# OPTIONS_GHC -O2 -fvia-C -optc-O3 #-}
 
 Version History
+(v0.8.4) Broke out Transfinite
+(v0.8.3) Documentation updates
+(v0.8.2) Announced release
 (v0.8) Did a bunch of tweaking. Things should be decent now
 (v0.7) Haddockified
 (v0.6) Fixed monomorphism.
@@ -63,36 +66,22 @@ for doing signed log-domain calculations.
 >     -- or see:
 >     -- <http://code.haskell.org/~wren/logfloat/dist/doc/html/logfloat/>
 >
->     -- * IEEE floating-point special values
->     -- | "GHC.Real" defines 'infinity' and 'notANumber' as
->     -- 'Rational'. We export variants which are polymorphic because
->     -- that can be more helpful at times.
->     -- 
->     -- BUG: At present these constants are broken for @Ratio@
->     -- types including 'Rational', since @Ratio@ types do not
->     -- typically permit a zero denominator. In GHC (6.8.2) the
->     -- result for 'infinity' is a rational with a numerator
->     -- sufficiently large that 'fromRational' will yield infinity
->     -- for @Float@ and @Double@. In Hugs (September 2006) it
->     -- yields an arithmetic overflow error. For GHC, our 'notANumber'
->     -- yields @0%1@ rather than @0%0@ as "GHC.Real" does.
->
->       infinity, negativeInfinity, notANumber
->
 >     -- * Basic functions
->     , log, toFractional
+>       log, toFractional
 >
 >     -- * @LogFloat@ data type and conversion functions
 >     , LogFloat
 >     , logFloat,     logToLogFloat
 >     , fromLogFloat, logFromLogFloat
+>
+>     -- * Exceptional numeric values
+>     , module Data.Number.Transfinite
 >     ) where
 > 
-> import Prelude hiding (log)
-> import qualified Prelude (log)
+> import Prelude hiding    (log, isNaN)
+> import qualified Prelude (log, isNaN)
 >
-> -- Not portable, and we can do it ourselves.
-> -- import qualified GHC.Real (infinity, notANumber)
+> import Data.Number.Transfinite
 
 ----------------------------------------------------------------
 
@@ -111,7 +100,7 @@ by other code transformations.
 
 These are general rule versions of our operators for 'LogFloat'. I
 had some issues inducing 'Ord' on @x@ and @y@, even though they're
-'Num' so I can't do "(+)/log" and "(-)/log" so easily.
+'Num' so I can't do "(+)\/log" and "(-)\/log" so easily.
 
 > {-# RULES
 > "(*)/log"  forall x y. log x * log y = log (x + y)
@@ -121,37 +110,29 @@ had some issues inducing 'Ord' on @x@ and @y@, even though they're
 
 ----------------------------------------------------------------
 
-The type signature is necessary for them not to default to Double.
-
-> infinity, negativeInfinity, notANumber :: (Fractional a) => a
-> infinity         = toFractional (1/0)  -- == fromRational GHC.Real.infinity
-> {-# SPECIALIZE negativeInfinity :: Double #-}
-> negativeInfinity = negate infinity
-> notANumber       = infinity - infinity -- == fromRational GHC.Real.notANumber
-
-The dictionaries for these are really ugly in core.
-TODO: be sure to check that these don't give eggregious performance hits
-
-----------------------------------------------------------------
-
 | Since the normal 'Prelude.log' throws an error on zero, we have
 to redefine it in order for things to work right. Arguing from
-limits it's obvious that @log 0 == negativeInfinity@.
+limits we can see that @log 0 == negativeInfinity@.
 
-If you're using some 'Floating' type that's not built in, verify
-this equation holds for your @0@ and @negativeInfinity@. If it
-doesn't, then you should avoid importing our 'log' and will probably
-want converters to handle the discrepency.
+In order to improve portability, the 'Transfinite' class is required
+to indicate that the 'Floating' type does in fact have a representation
+for negative infinity. Both native @Floating@ types ('Double' and
+'Float') are supported. If you define your own instance of
+@Transfinite@, verify the above equation holds for your @0@ and
+@negativeInfinity@. If it doesn't, then you should avoid importing
+our @log@ and will probably want converters to handle the discrepancy
+when dealing with @LogFloat@s.
 
 > {-# SPECIALIZE log :: Double -> Double #-}
-> log  :: (Floating a) => a -> a
+> log  :: (Floating a, Transfinite a) => a -> a
 > log 0 = negativeInfinity
 > log x = Prelude.log x
 
 
 | The most generic numeric converter I can come up with. All the
 built-in numeric types are 'Real', though 'Int' and 'Integer' aren't
-'Fractional'.
+'Fractional'. Beware that converting transfinite values into @Ratio@
+types is non-portable, as discussed in "Data.Number.Transfinite".
 
 > {-# SPECIALIZE toFractional :: (Real a)       => a -> Double #-}
 > {-# SPECIALIZE toFractional :: (Fractional b) => Double -> b #-}
@@ -191,8 +172,8 @@ these two tests? If not, then we could use @log . guardNonNegative
 fun = guardIsANumber fun . log@ in order to remove guardNonNegative.
 
 > guardIsANumber        :: String -> Double -> Double
-> guardIsANumber   fun x | x >= negativeInfinity = x
->                        | otherwise             = errorOutOfRange fun
+> guardIsANumber   fun x | Prelude.isNaN x = errorOutOfRange fun
+>                        | otherwise       = x
 
 ----------------------------------------------------------------
 
@@ -214,7 +195,7 @@ way you enter the log-domain only once, instead of twice.
 Even more particularly, you should /avoid addition/ whenever possible.
 Addition is provided because it's necessary at times and the proper
 implementation is not immediately transparent. However, between two
-@LogFloat@s addition requires crossing the exp/log boundary twice;
+@LogFloat@s addition requires crossing the exp\/log boundary twice;
 with a @LogFloat@ and a regular number it's three times since the
 regular number needs to enter the log-domain first. This makes addition
 incredibly slow. Again, if you can parenthesize to do plain operations
@@ -236,7 +217,7 @@ This is simply a polymorphic version of the 'LogFloat' data
 constructor. We present it mainly because we hide the constructor
 in order to make the type a bit more opaque. If the polymorphism
 turns out to be a performance liability because the rewrite rules
-can't remove it, then we need to rethink all four constructors/destructors.
+can't remove it, then we need to rethink all four constructors\/destructors.
 
 | Constructor which assumes the argument is already in the log-domain.
 
@@ -246,7 +227,7 @@ can't remove it, then we need to rethink all four constructors/destructors.
 
 
 | Return our log-domain value back into normal-domain. Beware of
-overflow/underflow.
+overflow\/underflow.
 
 > {-# SPECIALIZE fromLogFloat :: LogFloat -> Double #-}
 > fromLogFloat :: (Floating a) => LogFloat -> a
@@ -260,7 +241,7 @@ overflow/underflow.
 > logFromLogFloat (LogFloat x) = toFractional x
 
 
-These are our module-specific versions of "log/exp" and "exp/log";
+These are our module-specific versions of "log\/exp" and "exp\/log";
 They do the same things but also have a @LogFloat@ in between the
 logarithm and exponentiation.
 
@@ -282,7 +263,7 @@ To show it, we want to show the normal-domain value rather than the
 log-domain value. Also, if someone managed to break our invariants
 (e.g. by passing in a negative and noone's pulled on the thunk yet)
 then we want to crash before printing the constructor, rather than
-after.  N.B. This means the show will underflow/overflow in the
+after.  N.B. This means the show will underflow\/overflow in the
 same places as normal doubles since we underflow at the exp. Perhaps
 this means we should show the log-domain value instead.
 
@@ -297,7 +278,7 @@ they tend to induce more of the floating-point fuzz than using
 regular floating numbers because @exp . log@ doesn't really equal
 @id@. In any case, our main aim is for preventing underflow when
 multiplying many small numbers (and preventing overflow for multiplying
-many large numbers) so we're not too worried about +/- 4e-16.
+many large numbers) so we're not too worried about +\/- 4e-16.
 
 > instance Num LogFloat where 
 >     (*) (LogFloat x) (LogFloat y) = LogFloat (x+y)
