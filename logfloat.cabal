@@ -25,8 +25,6 @@ Library
     Exposed-Modules: Data.Number.LogFloat
                    , Data.Number.Transfinite
     Build-Depends:   base
--- Are these really necessary, or is it enough to have them in LogFloat.hs?
-    Ghc-Options:     -O2 -fvia-C -optc-O3 -fexcess-precision -fglasgow-exts
 
 ----------------------------------------------------------------
 ----------------------------------------------------------- fin.
