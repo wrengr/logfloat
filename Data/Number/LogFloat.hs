@@ -12,7 +12,7 @@
 
 -- {-# OPTIONS_GHC -ddump-rules -ddump-simpl-stats #-}
 
-{-# OPTIONS_GHC -Wall -Werror #-}
+{-# OPTIONS_GHC -Wall -fwarn-tabs -Werror #-}
 
 -- Unfortunately we need -fglasgow-exts in order to actually pick
 -- up on the rules (see -ddump-rules). The -frewrite-rules flag
