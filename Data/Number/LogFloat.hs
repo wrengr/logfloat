@@ -181,7 +181,7 @@ guardIsANumber   fun x | Prelude.isNaN x = errorOutOfRange fun
 -- if you can parenthesize to do plain operations first, do it!
 
 newtype LogFloat = LogFloat Double
-    deriving (Eq, Ord)
+    deriving (Eq, Ord) -- Should we really perpetuate the Ord lie?
 
 instance PartialOrd LogFloat where
     cmp (LogFloat x) (LogFloat y) 

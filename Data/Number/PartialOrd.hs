@@ -13,7 +13,7 @@
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
 -- Stability   :  provisional
--- Portability :  portable
+-- Portability :  semi-portable (overlapping instances, etc)
 -- 
 -- The Prelude's 'Ord' class for dealing with ordered types is often
 -- onerous to use because it requires 'Eq' as well as a total
@@ -29,6 +29,8 @@ module Data.Number.PartialOrd (PartialOrd(..)) where
 -- 'Maybe' instead of defining new types @PartialOrdering@ and
 -- @FuzzyBool@ because this way should make the class easier to
 -- use.
+--
+-- Minimum complete definition: 'cmp'
 
 class PartialOrd a where
     cmp   :: a -> a -> Maybe Ordering
