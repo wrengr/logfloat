@@ -24,6 +24,7 @@ Description:    This module presents a class for storing numbers
 Library
     Exposed-Modules: Data.Number.LogFloat
                    , Data.Number.Transfinite
+                   , Data.Number.PartialOrd
     Build-Depends:   base
 
 ----------------------------------------------------------------

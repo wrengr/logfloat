@@ -47,7 +47,7 @@
 -- Copyright   :  Copyright (c) 2007--2008 wren ng thornton
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
--- Stability   :  stable
+-- Stability   :  provisional
 -- Portability :  portable
 --
 -- This module presents a type for storing numbers in the log-domain.

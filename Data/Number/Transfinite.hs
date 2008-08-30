@@ -47,6 +47,8 @@ module Data.Number.Transfinite
 import Prelude hiding    (isInfinite, isNaN, log, realToFrac)
 import qualified Prelude (isInfinite, isNaN, log, realToFrac)
 
+import Data.Number.PartialOrd
+
 #ifdef __GLASGOW_HASKELL__
 import GHC.Prim
     ( int2Double#
@@ -74,7 +76,7 @@ import GHC.Exts (Int(..), Integer(..), Float(..), Double(..))
 -- laws regarding @infinity@ and @negativeInfinity@ should pertain.
 -- (Some of these are discussed below.)
 
-class (Ord a) => Transfinite a where
+class (PartialOrd a) => Transfinite a where
     
     -- | A transfinite value which is greater than all finite values.
     -- Adding or subtracting any finite value is a no-op. As is
@@ -165,10 +167,18 @@ instance Transfinite Float where
 {-# SPECIALIZE log :: Double -> Double #-}
 {-# SPECIALIZE log :: Float  -> Float  #-}
 log  :: (Floating a, Transfinite a) => a -> a
-log x = case compare x 0 of
-        GT -> Prelude.log x
-        EQ -> negativeInfinity
-        LT -> error "Data.Number.Transfinite.log: argument out of range"
+log x = case x `cmp` 0 of
+        Just GT -> Prelude.log x
+        Just EQ -> negativeInfinity
+        Just LT -> err "argument out of range"
+        Nothing -> err "argument not comparable to 0"
+        where
+        err e = error $! "Data.Number.Transfinite.log: "++e
+
+-- Note, Floating ultimately requires Num, but not Ord. If PartialOrd
+-- proves to be an onerous requirement on Transfinite, we could
+-- hack our way around without using PartialOrd by using isNaN, (==
+-- 0), ((>0).signum) but that would be less efficient.
 
 
 ----------------------------------------------------------------
