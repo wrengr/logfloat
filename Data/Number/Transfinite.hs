@@ -32,7 +32,12 @@
 -- is used on an infinite floating value, the result is a rational
 -- with a numerator sufficiently large that it will overflow when
 -- converted back to a @Double@. If used on NaN, the result would
--- buggily convert back as 'negativeInfinity'.
+-- buggily convert back as 'negativeInfinity'. For more discussion
+-- on why this approach is problematic, see:
+--
+-- * <http://www.haskell.org/pipermail/haskell-prime/2006-February/000791.html>
+--
+-- * <http://www.haskell.org/pipermail/haskell-prime/2006-February/000821.html>
 -- 
 -- Hugs (September 2006) stays closer to the haskell98 spec and
 -- offers no way of constructing those values, raising arithmetic
@@ -204,8 +209,6 @@ log x = case x `cmp` 0 of
 --
 -- If any of these restrictions (CPP, GHC-only, OverlappingInstances)
 -- are onerous to you, contact the maintainer (we like patches :)
---
--- * <http://www.haskell.org/pipermail/haskell-prime/2006-February/000791.html>
 
 class RealToFrac a b where
     realToFrac :: (Real a, Fractional b) => a -> b
