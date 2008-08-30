@@ -74,22 +74,22 @@ class PartialOrd a where
 infix 4 `gt`, `ge`, `eq`, `ne`, `le`, `lt`
 
 instance (Ord a) => PartialOrd a where
-    cmp x y = Just (compare x y)
-    gt  x y = Just (x >  y)
-    ge  x y = Just (x >= y)
-    eq  x y = Just (x == y)
-    ne  x y = Just (x /= y)
-    le  x y = Just (x <= y)
-    lt  x y = Just (x <  y)
+    cmp x y = Just $! compare x y
+    gt  x y = Just $! x >  y
+    ge  x y = Just $! x >= y
+    eq  x y = Just $! x == y
+    ne  x y = Just $! x /= y
+    le  x y = Just $! x <= y
+    lt  x y = Just $! x <  y
 
 -- The instances inherited from Ord are wrong
 instance PartialOrd Float where
     cmp x y | isNaN x || isNaN y = Nothing
-            | otherwise          = Just (x `compare` y)
+            | otherwise          = Just $! x `compare` y
 
 instance PartialOrd Double where
     cmp x y | isNaN x || isNaN y = Nothing
-            | otherwise          = Just (x `compare` y)
+            | otherwise          = Just $! x `compare` y
 
 ----------------------------------------------------------------
 ----------------------------------------------------------- fin.
