@@ -31,13 +31,43 @@ module Data.Number.PartialOrd (PartialOrd(..)) where
 -- use.
 
 class PartialOrd a where
-    cmp :: a -> a -> Maybe Ordering
-    gt  :: a -> a -> Maybe Bool
-    ge  :: a -> a -> Maybe Bool
-    eq  :: a -> a -> Maybe Bool
-    ne  :: a -> a -> Maybe Bool
-    le  :: a -> a -> Maybe Bool
-    lt  :: a -> a -> Maybe Bool
+    cmp   :: a -> a -> Maybe Ordering
+    
+    gt    :: a -> a -> Maybe Bool
+    gt x y = case x `cmp` y of
+             Just GT -> Just True
+             Just _  -> Just False
+             Nothing -> Nothing
+    
+    ge    :: a -> a -> Maybe Bool
+    ge x y = case x `cmp` y of
+             Just LT -> Just False
+             Just _  -> Just True
+             Nothing -> Nothing
+    
+    eq    :: a -> a -> Maybe Bool
+    eq x y = case x `cmp` y of
+             Just EQ -> Just True
+             Just _  -> Just False
+             Nothing -> Nothing
+    
+    ne    :: a -> a -> Maybe Bool
+    ne x y = case x `cmp` y of
+             Just EQ -> Just False
+             Just _  -> Just True
+             Nothing -> Nothing
+    
+    le    :: a -> a -> Maybe Bool
+    le x y = case x `cmp` y of
+             Just GT -> Just False
+             Just _  -> Just True
+             Nothing -> Nothing
+    
+    lt    :: a -> a -> Maybe Bool
+    lt x y = case x `cmp` y of
+             Just LT -> Just True
+             Just _  -> Just False
+             Nothing -> Nothing
 
 infix 4 `gt`, `ge`, `eq`, `ne`, `le`, `lt`
 
