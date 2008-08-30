@@ -83,6 +83,7 @@ import Prelude hiding    (log, isNaN, realToFrac)
 import qualified Prelude (isNaN)
 
 import Data.Number.Transfinite
+import Data.Number.PartialOrd
 
 ----------------------------------------------------------------
 --
@@ -181,6 +182,11 @@ guardIsANumber   fun x | Prelude.isNaN x = errorOutOfRange fun
 
 newtype LogFloat = LogFloat Double
     deriving (Eq, Ord)
+
+instance PartialOrd LogFloat where
+    cmp (LogFloat x) (LogFloat y) 
+        | isNaN x || isNaN y = Nothing
+        | otherwise          = Just (x `compare` y)
 
 
 -- | A constructor which does semantic conversion from normal-domain

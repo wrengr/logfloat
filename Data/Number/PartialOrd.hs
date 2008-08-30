@@ -80,5 +80,14 @@ instance (Ord a) => PartialOrd a where
     le  x y = Just (x <= y)
     lt  x y = Just (x <  y)
 
+-- The instances inherited from Ord are wrong
+instance PartialOrd Float where
+    cmp x y | isNaN x || isNaN y = Nothing
+            | otherwise          = Just (x `compare` y)
+
+instance PartialOrd Double where
+    cmp x y | isNaN x || isNaN y = Nothing
+            | otherwise          = Just (x `compare` y)
+
 ----------------------------------------------------------------
 ----------------------------------------------------------- fin.

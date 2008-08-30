@@ -61,7 +61,7 @@ import GHC.Prim
     , double2Float#
     , float2Double#
     )
-import GHC.Exts (Int(..), Integer(..), Float(..), Double(..))
+import GHC.Exts (Int(..), Float(..), Double(..))
 #endif
 
 ----------------------------------------------------------------
@@ -227,10 +227,6 @@ instance (Real a, Transfinite a, Fractional b, Transfinite b)
 
 
 #ifdef __GLASGOW_HASKELL__
-instance RealToFrac Int Integer where
-    {-# INLINE realToFrac #-}
-    realToFrac (I# i) = S# i
-
 instance RealToFrac Int Float where
     {-# INLINE realToFrac #-}
     realToFrac (I# i) = F# (int2Float# i)
