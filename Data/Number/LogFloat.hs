@@ -2,10 +2,12 @@
 -- TODO: Make sure rewrite rules really fire
 -- TODO: profile to make sure we don't waste too much time constructing
 --       dictionaries
--- TODO: investigate adding strictness annotations for register
---       unboxing
+-- TODO: write strict variant to unpack into registers
 -- TODO: write the signed variant
---
+
+-- Needed by our RealToFrac contexts
+{-# LANGUAGE FlexibleContexts #-}
+
 -- To turn on optimizations and look at the optimization records, cf:
 -- http://www.haskell.org/ghc/docs/latest/html/users_guide/rewrite-rules.html
 -- http://www.randomhacks.net/articles/2007/02/10/map-fusion-and-haskell-performance
@@ -22,6 +24,8 @@
 {-# OPTIONS_GHC -O2 -fvia-C -optc-O3 -fexcess-precision -fglasgow-exts #-}
 
 -- Version History
+-- (v0.9.0) s/toFractional/realToFrac/g.
+--          Also moved realToFrac and log to Transfinite
 -- (v0.8.6) Removed buggy RULES
 -- (v0.8.5) Gave up and converted from lhs to hs so Hackage docs work
 -- (v0.8.4) Broke out Transfinite
@@ -37,7 +41,7 @@
 -- (v0.1) Initial version created for hw5 for NLP with Jason Eisner.
 --
 ----------------------------------------------------------------
---                                                  ~ 2008.08.17
+--                                                  ~ 2008.08.29
 -- |
 -- Module      :  Data.Number.LogFloat
 -- Copyright   :  Copyright (c) 2007--2008 wren ng thornton
@@ -66,20 +70,17 @@
 
 module Data.Number.LogFloat
     (
-    -- * Basic functions
-      log, toFractional
-
+    -- * Exceptional numeric values
+      module Data.Number.Transfinite
+    
     -- * @LogFloat@ data type and conversion functions
     , LogFloat
     , logFloat,     logToLogFloat
     , fromLogFloat, logFromLogFloat
-
-    -- * Exceptional numeric values
-    , module Data.Number.Transfinite
     ) where
 
-import Prelude hiding    (log, isNaN)
-import qualified Prelude (log, isNaN)
+import Prelude hiding    (log, isNaN, realToFrac)
+import qualified Prelude (isNaN)
 
 import Data.Number.Transfinite
 
@@ -115,87 +116,14 @@ import Data.Number.Transfinite
 -- them.
 
 
-----------------------------------------------------------------
---
--- | Since the normal 'Prelude.log' throws an error on zero, we
--- have to redefine it in order for things to work right. Arguing
--- from limits we can see that @log 0 == negativeInfinity@. Newer
--- versions of GHC have this behavior already, but older versions
--- and Hugs do not.
---
--- This function will raise an error when taking the log of negative
--- numbers, rather than returning 'notANumber' as the newer GHC
--- implementation does. The reason being that typically this is a
--- logical error, and @notANumber@ allows the error to propegate
--- silently.
---
--- In order to improve portability, the 'Transfinite' class is
--- required to indicate that the 'Floating' type does in fact have
--- a representation for negative infinity. Both native floating
--- types ('Double' and 'Float') are supported. If you define your
--- own instance of @Transfinite@, verify the above equation holds
--- for your @0@ and @negativeInfinity@. If it doesn't, then you
--- should avoid importing our @log@ and will probably want converters
--- to handle the discrepancy when dealing with @LogFloat@s.
-
-{-# SPECIALIZE log :: Double -> Double #-}
-log  :: (Floating a, Transfinite a) => a -> a
-log x = case compare x 0 of
-        GT -> Prelude.log x
-        EQ -> negativeInfinity
-        LT -> errorOutOfRange "log"
-
-
--- | The most generic numeric converter I can come up with. All the
--- built-in numeric types are 'Real', though 'Int' and 'Integer'
--- aren't 'Fractional'. Beware that converting transfinite values
--- into @Ratio@ types is error-prone and non-portable, as discussed
--- in "Data.Number.Transfinite".
-
-{-# INLINE [1] toFractional #-}
-{-# SPECIALIZE toFractional :: (Real a)       => a -> Float  #-}
-{-# SPECIALIZE toFractional :: (Real a)       => a -> Double #-}
-{-# SPECIALIZE toFractional :: (Fractional b) => Double -> b #-}
-toFractional :: (Real a, Fractional b) => a -> b
-toFractional  = fromRational . toRational
-
--- The INLINE pragma is to /delay/ inlining, so the rules below can
--- have their way
-
--- This should only fire when it's type-safe
-{-# RULES "toFractional/id" toFractional = id #-}
-
--- These too should only fire when it's type-safe
+-- These should only fire when it's type-safe
 -- This should already happen, but...
 -- TODO: Check the logs to see if it ever fires
--- BUG: why does -ddump-rules call these two orphaned?
+-- N.B. these are orphaned
 {-# RULES
 "toRational/fromRational"  forall x. toRational (fromRational x) = x
 "toRational.fromRational"            toRational . fromRational   = id
     #-}
-
--- 'toFractional' should be inlined and the above rules should
--- obviate this, but...
--- TODO: We should check the logs to see if it ever fires before
---       removing them
-{-# RULES
-"toFractional/toFractional" forall x.
-                            toFractional (toFractional x) = toFractional x
-"toFractional.toFractional" toFractional . toFractional   = toFractional
-    #-}
-
-
-{- It looks like we need these for vast performance improvement.
-   Is there some way to include them without resorting to CPP or
-   other non-portability?
-   <http://www.haskell.org/ghc/docs/latest/html/users_guide/rewrite-rules.html>
-
-import GHC.Prim
-{-# RULES "toFractional::Int->Double" toFractional = i2d #-}
-i2d (I# i) = D# (int2Double# i)
-{-# RULES "toFractional::Int->Float"  toFractional = i2f #-}
-i2f (I# i) = F# (int2Float# i)
--}
 
 
 ----------------------------------------------------------------
@@ -259,8 +187,8 @@ newtype LogFloat = LogFloat Double
 -- to log-domain.
 
 {-# SPECIALIZE logFloat :: Double -> LogFloat #-}
-logFloat :: (Real a) => a -> LogFloat
-logFloat  = LogFloat . log . guardNonNegative "logFloat" . toFractional
+logFloat :: (Real a, RealToFrac a Double) => a -> LogFloat
+logFloat  = LogFloat . log . guardNonNegative "logFloat" . realToFrac
 
 
 -- This is simply a polymorphic version of the 'LogFloat' data
@@ -274,23 +202,25 @@ logFloat  = LogFloat . log . guardNonNegative "logFloat" . toFractional
 -- log-domain.
 
 {-# SPECIALIZE logToLogFloat :: Double -> LogFloat #-}
-logToLogFloat :: (Real a) => a -> LogFloat
-logToLogFloat  = LogFloat . guardIsANumber "logToLogFloat" . toFractional
+logToLogFloat :: (Real a, RealToFrac a Double) => a -> LogFloat
+logToLogFloat  = LogFloat . guardIsANumber "logToLogFloat" . realToFrac
 
 
 -- | Return our log-domain value back into normal-domain. Beware
 -- of overflow\/underflow.
 
 {-# SPECIALIZE fromLogFloat :: LogFloat -> Double #-}
-fromLogFloat :: (Fractional a, Transfinite a) => LogFloat -> a
-fromLogFloat (LogFloat x) = toFractional (exp x)
+fromLogFloat :: (Fractional a, Transfinite a, RealToFrac Double a)
+             => LogFloat -> a
+fromLogFloat (LogFloat x) = realToFrac (exp x)
 
 
 -- | Return the log-domain value itself without costly conversion
 
 {-# SPECIALIZE logFromLogFloat :: LogFloat -> Double #-}
-logFromLogFloat :: (Fractional a, Transfinite a) => LogFloat -> a
-logFromLogFloat (LogFloat x) = toFractional x
+logFromLogFloat :: (Fractional a, Transfinite a, RealToFrac Double a)
+                => LogFloat -> a
+logFromLogFloat (LogFloat x) = realToFrac x
 
 
 -- These are our module-specific versions of "log\/exp" and "exp\/log";
@@ -298,7 +228,7 @@ logFromLogFloat (LogFloat x) = toFractional x
 -- the logarithm and exponentiation.
 --
 -- In order to ensure these rules fire we may need to delay inlining
--- of the four con-\/destructors, like we do for 'toFractional'.
+-- of the four con-\/destructors, like we do for 'realToFrac'.
 -- Unfortunately, I'm not entirely sure whether they will be inlined
 -- already or not (and whether they are may be fragile) and I don't
 -- want to inline them excessively and lead to code bloat in the
@@ -383,7 +313,7 @@ instance Fractional LogFloat where
 
 
 -- Just for fun. The more coersion functions the better. Though
--- it can underflow...
+-- Rationals are very buggy when it comes to transfinite values
 instance Real LogFloat where
     toRational (LogFloat x) = toRational (exp x)
 
