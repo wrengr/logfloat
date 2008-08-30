@@ -132,8 +132,8 @@ import Data.Number.PartialOrd
 -- | Reduce the number of constant string literals we need to store.
 
 errorOutOfRange    :: String -> a
-errorOutOfRange fun = error $ "Data.Number.LogFloat."++fun
-                           ++ ": argument out of range"
+errorOutOfRange fun = error $! "Data.Number.LogFloat."++fun
+                            ++ ": argument out of range"
 
 
 -- | We need these guards in order to ensure some invariants.
@@ -186,7 +186,7 @@ newtype LogFloat = LogFloat Double
 instance PartialOrd LogFloat where
     cmp (LogFloat x) (LogFloat y) 
         | isNaN x || isNaN y = Nothing
-        | otherwise          = Just (x `compare` y)
+        | otherwise          = Just $! x `compare` y
 
 
 -- | A constructor which does semantic conversion from normal-domain
