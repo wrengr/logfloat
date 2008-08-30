@@ -210,13 +210,15 @@ log x = case x `cmp` 0 of
 -- If any of these restrictions (CPP, GHC-only, OverlappingInstances)
 -- are onerous to you, contact the maintainer (we like patches :)
 
-class RealToFrac a b where
-    realToFrac :: (Real a, Fractional b) => a -> b
+class (Real a, Fractional b) => RealToFrac a b where
+    realToFrac :: a -> b
 
-instance RealToFrac a a where
+instance (Real a, Fractional a) => RealToFrac a a where
     realToFrac = id
 
-instance (Transfinite a, Transfinite b) => RealToFrac a b where
+instance (Real a, Transfinite a, Fractional b, Transfinite b)
+    => RealToFrac a b
+    where
     realToFrac x
         | isNaN      x = notANumber
         | isInfinite x = if x > 0 then infinity
