@@ -206,8 +206,6 @@ log x = case x `cmp` 0 of
 -- are onerous to you, contact the maintainer (we like patches :)
 --
 -- * <http://www.haskell.org/pipermail/haskell-prime/2006-February/000791.html>
---
--- * <http://www.haskell.org/ghc/docs/latest/html/users_guide/rewrite-rules.html>
 
 class RealToFrac a b where
     realToFrac :: (Real a, Fractional b) => a -> b
