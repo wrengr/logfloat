@@ -24,6 +24,7 @@
 {-# OPTIONS_GHC -O2 -fvia-C -optc-O3 -fexcess-precision -fglasgow-exts #-}
 
 -- Version History
+-- (v0.9.1) Fixed some PartialOrd stuff and sanitized documentation
 -- (v0.9.0) s/toFractional/realToFrac/g.
 --          Also moved realToFrac and log to Transfinite
 -- (v0.8.6) Removed buggy RULES
