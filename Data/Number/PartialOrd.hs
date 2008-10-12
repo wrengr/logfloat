@@ -3,7 +3,7 @@
            , UndecidableInstances
            #-}
 
-{-# OPTIONS_GHC -Wall -fwarn-tabs -Werror #-}
+{-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
 ----------------------------------------------------------------
 --                                                  ~ 2008.08.29

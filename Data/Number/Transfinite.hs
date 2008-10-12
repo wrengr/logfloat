@@ -7,7 +7,7 @@
 -- Glasgow extensions needed to enable the # kind
 {-# OPTIONS_GHC -cpp -fglasgow-exts #-}
 
-{-# OPTIONS_GHC -Wall -fwarn-tabs -Werror #-}
+{-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
 ----------------------------------------------------------------
 --                                                  ~ 2008.08.29
