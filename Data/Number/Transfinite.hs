@@ -16,7 +16,7 @@
 -- Copyright   :  Copyright (c) 2007--2008 wren ng thornton
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
--- Stability   :  beta
+-- Stability   :  experimental
 -- Portability :  non-portable (CPP, MPTC, OverlappingInstances)
 -- 
 -- This module presents a type class for numbers which have
