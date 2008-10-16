@@ -1,5 +1,5 @@
 ----------------------------------------------------------------
--- wren ng thornton <wren@community.haskell.org>    ~ 2008.10.12
+-- wren ng thornton <wren@community.haskell.org>    ~ 2008.10.16
 ----------------------------------------------------------------
 
 Name:           logfloat
@@ -35,9 +35,9 @@ Library
                    , Data.Number.Transfinite
                    , Data.Number.PartialOrd
     Build-Depends:   base
+-- No longer needed since we use GHC.Exts instead
 --    if flag(hiddenPrim)
-    if impl(ghc >= 6.10)
-        Build-Depends: ghc-prim
+--        Build-Depends: ghc-prim
 
 ----------------------------------------------------------------
 ----------------------------------------------------------- fin.

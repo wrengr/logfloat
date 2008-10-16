@@ -10,7 +10,7 @@
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2008.08.29
+--                                                  ~ 2008.10.16
 -- |
 -- Module      :  Data.Number.Transfinite
 -- Copyright   :  Copyright (c) 2007--2008 wren ng thornton
@@ -55,13 +55,14 @@ import qualified Prelude (isInfinite, isNaN, log, realToFrac)
 import Data.Number.PartialOrd
 
 #ifdef __GLASGOW_HASKELL__
-import GHC.Prim
-    ( int2Double#
+import GHC.Exts
+    ( Int(..), Float(..), Double(..)
+-- These should all be provided indirectly from GHC.Prim...
+    , int2Double#
     , int2Float#
     , double2Float#
     , float2Double#
     )
-import GHC.Exts (Int(..), Float(..), Double(..))
 #endif
 
 ----------------------------------------------------------------
