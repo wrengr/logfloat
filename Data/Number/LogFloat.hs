@@ -193,8 +193,8 @@ instance PartialOrd LogFloat where
 -- | A constructor which does semantic conversion from normal-domain
 -- to log-domain.
 
-{-# SPECIALIZE logFloat :: Double -> LogFloat #-}
 logFloat :: (Real a, RealToFrac a Double) => a -> LogFloat
+{-# SPECIALIZE logFloat :: Double -> LogFloat #-}
 logFloat  = LogFloat . log . guardNonNegative "logFloat" . realToFrac
 
 
@@ -207,26 +207,23 @@ logFloat  = LogFloat . log . guardNonNegative "logFloat" . realToFrac
 --
 -- | Constructor which assumes the argument is already in the
 -- log-domain.
-
-{-# SPECIALIZE logToLogFloat :: Double -> LogFloat #-}
 logToLogFloat :: (Real a, RealToFrac a Double) => a -> LogFloat
+{-# SPECIALIZE logToLogFloat :: Double -> LogFloat #-}
 logToLogFloat  = LogFloat . guardIsANumber "logToLogFloat" . realToFrac
 
 
 -- | Return our log-domain value back into normal-domain. Beware
 -- of overflow\/underflow.
-
-{-# SPECIALIZE fromLogFloat :: LogFloat -> Double #-}
 fromLogFloat :: (Fractional a, Transfinite a, RealToFrac Double a)
              => LogFloat -> a
+{-# SPECIALIZE fromLogFloat :: LogFloat -> Double #-}
 fromLogFloat (LogFloat x) = realToFrac (exp x)
 
 
 -- | Return the log-domain value itself without costly conversion
-
-{-# SPECIALIZE logFromLogFloat :: LogFloat -> Double #-}
 logFromLogFloat :: (Fractional a, Transfinite a, RealToFrac Double a)
                 => LogFloat -> a
+{-# SPECIALIZE logFromLogFloat :: LogFloat -> Double #-}
 logFromLogFloat (LogFloat x) = realToFrac x
 
 

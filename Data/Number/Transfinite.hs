@@ -177,9 +177,9 @@ instance Transfinite Float where
 -- should avoid importing our @log@ and will probably want converters
 -- to handle the discrepancy.
 
+log  :: (Floating a, Transfinite a) => a -> a
 {-# SPECIALIZE log :: Double -> Double #-}
 {-# SPECIALIZE log :: Float  -> Float  #-}
-log  :: (Floating a, Transfinite a) => a -> a
 log x = case x `cmp` 0 of
         Just GT -> Prelude.log x
         Just EQ -> negativeInfinity
