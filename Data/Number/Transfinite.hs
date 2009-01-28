@@ -139,6 +139,8 @@ class (PartialOrd a) => Transfinite a where
     isNaN      :: a -> Bool
 
 
+-- BUG: for Hugs (Sept 2006) Prelude.isNaN and Prelude.isInfinite are broken
+
 instance Transfinite Double where
     infinity         = 1/0
     negativeInfinity = negate (1/0)

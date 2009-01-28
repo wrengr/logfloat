@@ -82,6 +82,9 @@ instance (Ord a) => PartialOrd a where
     le  x y = Just $! x <= y
     lt  x y = Just $! x <  y
 
+-- BUG: These instances aren't picked up by Hugs, even with +o or +O
+-- Also Hugs (Sept 2006) is buggy where @NaN `compare` x == EQ@
+
 -- The instances inherited from Ord are wrong
 instance PartialOrd Float where
     cmp x y | isNaN x || isNaN y = Nothing
