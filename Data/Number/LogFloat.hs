@@ -64,6 +64,7 @@ module Data.Number.LogFloat
     (
     -- * Exceptional numeric values
       module Data.Number.Transfinite
+    , module Data.Number.RealToFrac
     
     -- * @LogFloat@ data type and conversion functions
     , LogFloat
@@ -73,6 +74,7 @@ module Data.Number.LogFloat
 
 import Prelude hiding (log, realToFrac, isInfinite, isNaN)
 
+import Data.Number.RealToFrac
 import Data.Number.Transfinite
 import Data.Number.PartialOrd
 

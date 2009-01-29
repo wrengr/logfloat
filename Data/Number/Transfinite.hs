@@ -1,10 +1,3 @@
-
--- Needed to ensure correctness, and because we can't guarantee rules fire
-{-# LANGUAGE MultiParamTypeClasses
-           , OverlappingInstances
-           , CPP
-           #-}
-
 -- Glasgow extensions needed to enable the # kind
 {-# OPTIONS_GHC -fglasgow-exts #-}
 
@@ -18,7 +11,7 @@
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
 -- Stability   :  experimental
--- Portability :  non-portable (CPP, MPTC, OverlappingInstances)
+-- Portability :  portable
 -- 
 -- This module presents a type class for numbers which have
 -- representations for transfinite values. The idea originated from
@@ -47,24 +40,13 @@
 module Data.Number.Transfinite
     ( Transfinite(..)
     , log
-    , RealToFrac(..)
     ) where
 
-import Prelude hiding    (log, realToFrac,  isInfinite, isNaN)
-import qualified Prelude (log, realToFrac)
+import Prelude hiding    (log, isInfinite, isNaN)
+import qualified Prelude (log)
 import qualified Hugs.RealFloat as Prelude (isInfinite, isNaN)
 
 import Data.Number.PartialOrd
-
-#ifdef __GLASGOW_HASKELL__
-import GHC.Exts
-    ( Int(..), Float(..), Double(..)
-    , int2Double#
-    , int2Float#
-    , double2Float#
-    , float2Double#
-    )
-#endif
 
 ----------------------------------------------------------------
 -- | Many numbers are not 'Bounded' yet, even though they can
@@ -200,70 +182,6 @@ log x = case x `cmp` 0 of
 -- proves to be an onerous requirement on Transfinite, we could
 -- hack our way around without using PartialOrd by using isNaN, (==
 -- 0), ((>0).signum) but that would be less efficient.
-
-
-----------------------------------------------------------------
--- | The 'Prelude.realToFrac' function is defined to pivot through
--- a 'Rational' according to the haskell98 spec. This is non-portable
--- and problematic as discussed above. Since there is some resistance
--- to breaking from the spec, this class defines a reasonable variant
--- which deals with transfinite values appropriately.
---
--- N.B. The generic instance for transfinite types uses expensive
--- checks to ensure correctness. On GHC there are specialized
--- versions which use primitive converters instead. These instances
--- are hidden from other compilers by the CPP. Be warned that the
--- instances are overlapped, so you'll need to give type signatures
--- if the arguments to 'realToFrac' are polymorphic.
---
--- If any of these restrictions (CPP, GHC-only optimizations,
--- OverlappingInstances) are onerous to you, contact the maintainer
--- (we like patches).  Note that this /does/ work for Hugs with
--- suitable options (e.g. @hugs -98 +o -F'cpp -P'@).
-
-class (Real a, Fractional b) => RealToFrac a b where
-    realToFrac :: a -> b
-
-instance (Real a, Fractional a) => RealToFrac a a where
-    realToFrac = id
-
-instance (Real a, Transfinite a, Fractional b, Transfinite b)
-    => RealToFrac a b
-    where
-    realToFrac x
-        | isNaN      x = notANumber
-        | isInfinite x = if x > 0 then infinity
-                                  else negativeInfinity
-        | otherwise    = Prelude.realToFrac x
-
-
-#ifdef __GLASGOW_HASKELL__
-instance RealToFrac Int Float where
-    {-# INLINE realToFrac #-}
-    realToFrac (I# i) = F# (int2Float# i)
-
-instance RealToFrac Int Double where
-    {-# INLINE realToFrac #-}
-    realToFrac (I# i) = D# (int2Double# i)
-
-
-instance RealToFrac Integer Float where
-    -- TODO: is there a more primitive way?
-    realToFrac j = Prelude.realToFrac j
-
-instance RealToFrac Integer Double where
-    -- TODO: is there a more primitive way?
-    realToFrac j = Prelude.realToFrac j
-
-
-instance RealToFrac Float Double where
-    {-# INLINE realToFrac #-}
-    realToFrac (F# f) = D# (float2Double# f)
-    
-instance RealToFrac Double Float where
-    {-# INLINE realToFrac #-}
-    realToFrac (D# d) = F# (double2Float# d)
-#endif
 
 ----------------------------------------------------------------
 ----------------------------------------------------------- fin.
