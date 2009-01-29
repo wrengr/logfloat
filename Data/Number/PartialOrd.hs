@@ -21,7 +21,17 @@
 -- are moreso. This module presents a class for partially ordered
 -- types.
 ----------------------------------------------------------------
-module Data.Number.PartialOrd (PartialOrd(..)) where
+module Data.Number.PartialOrd
+    (
+    -- * Partial Ordering
+      PartialOrd(..)
+    -- * Functions
+    , comparingPO
+    ) where
+
+-- Bugfix for Hugs (September 2006), see note below.
+import Prelude hiding (isNaN)
+import Hugs.RealFloat (isNaN)
 
 ----------------------------------------------------------------
 -- | This class defines a partially ordered type. The method names
@@ -109,10 +119,13 @@ instance (Ord a) => PartialOrd a where
     maxPO x y = Just $! x `max` y
     minPO x y = Just $! x `min` y
 
--- BUG: These instances aren't picked up by Hugs, even with +o or +O
--- Also Hugs (Sept 2006) is buggy where @NaN `compare` x == EQ@
 
--- The instances inherited from Ord are wrong
+-- N.B. Hugs (Sept 2006) has a buggy definition for 'isNaN' which
+-- always returns @False@. We use a fixed version, provided the CPP
+-- was run with the right arguments. See "Hugs.RealFloat". If 'cmp'
+-- returns @Just Eq@ for @notANumber@ then CPP was run wrongly.
+--
+-- The instances inherited from Ord are wrong. So we'll fix them.
 instance PartialOrd Float where
     cmp x y | isNaN x || isNaN y = Nothing
             | otherwise          = Just $! x `compare` y

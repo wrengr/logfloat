@@ -2,7 +2,8 @@
 -- Needed by our RealToFrac contexts
 {-# LANGUAGE FlexibleContexts #-}
 
-{-# OPTIONS_GHC -Wall -fwarn-tabs #-}
+-- Removed -Wall because -fno-warn-orphans was removed in GHC 6.10
+{-# OPTIONS_GHC -fwarn-tabs #-}
 
 -- Unfortunately we need -fglasgow-exts in order to actually pick
 -- up on the rules (see -ddump-rules). The -frewrite-rules flag
@@ -12,6 +13,8 @@
 {-# OPTIONS_GHC -O2 -fvia-C -optc-O3 -fexcess-precision -fglasgow-exts #-}
 
 -- Version History
+-- (v0.10)  Fixed bugs in Hugs for PartialOrd and Transfinite.
+--          Also added maxPO, minPO, comparingPO
 -- (v0.9.1) Fixed some PartialOrd stuff and sanitized documentation
 -- (v0.9.0) s/toFractional/realToFrac/g.
 --          Also moved realToFrac and log to Transfinite
@@ -33,7 +36,7 @@
 --                                                  ~ 2008.08.29
 -- |
 -- Module      :  Data.Number.LogFloat
--- Copyright   :  Copyright (c) 2007--2008 wren ng thornton
+-- Copyright   :  Copyright (c) 2007--2009 wren ng thornton
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
 -- Stability   :  stable
@@ -68,8 +71,7 @@ module Data.Number.LogFloat
     , fromLogFloat, logFromLogFloat
     ) where
 
-import Prelude hiding    (log, isNaN, realToFrac)
-import qualified Prelude (isNaN)
+import Prelude hiding (log, realToFrac, isInfinite, isNaN)
 
 import Data.Number.Transfinite
 import Data.Number.PartialOrd
@@ -117,16 +119,14 @@ import Data.Number.PartialOrd
 
 
 ----------------------------------------------------------------
---
--- | Reduce the number of constant string literals we need to store.
 
+-- | Reduce the number of constant string literals we need to store.
 errorOutOfRange    :: String -> a
 errorOutOfRange fun = error $! "Data.Number.LogFloat."++fun
                             ++ ": argument out of range"
 
 
 -- | We need these guards in order to ensure some invariants.
-
 guardNonNegative      :: String -> Double -> Double
 guardNonNegative fun x | x >= 0    = x
                        | otherwise = errorOutOfRange fun
@@ -137,10 +137,9 @@ guardNonNegative fun x | x >= 0    = x
 -- and so we could ideally take advantage of @log . guardNonNegative
 -- fun = guardIsANumber fun . log@ to simplify things, but Hugs
 -- raises an error so that's non-portable.
-
 guardIsANumber        :: String -> Double -> Double
-guardIsANumber   fun x | Prelude.isNaN x = errorOutOfRange fun
-                       | otherwise       = x
+guardIsANumber   fun x | isNaN x   = errorOutOfRange fun
+                       | otherwise = x
 
 ----------------------------------------------------------------
 --
@@ -180,7 +179,6 @@ instance PartialOrd LogFloat where
 
 -- | A constructor which does semantic conversion from normal-domain
 -- to log-domain.
-
 logFloat :: (Real a, RealToFrac a Double) => a -> LogFloat
 {-# SPECIALIZE logFloat :: Double -> LogFloat #-}
 logFloat  = LogFloat . log . guardNonNegative "logFloat" . realToFrac
@@ -265,6 +263,14 @@ instance Show LogFloat where
 -- +\/- 4e-16.
 
 instance Num LogFloat where 
+    -- BUG? In Hugs (Sept2006) the (>=) always returns True if
+    --      either isNaN. Only questionably a bug, since we try to
+    --      ensure that notANumber never occurs. Still... perhaps
+    --      we should use `ge` and other PartialOrd things in order
+    --      to play it safe.
+    -- TODO: benchmark and check core to see how much that hurts GHC.
+    
+    
     (*) (LogFloat x) (LogFloat y) = LogFloat (x+y)
 
     (+) (LogFloat x) (LogFloat y)
@@ -308,6 +314,20 @@ instance Fractional LogFloat where
 -- Rationals are very buggy when it comes to transfinite values
 instance Real LogFloat where
     toRational (LogFloat x) = toRational (exp x)
+
+
+{- -- Commented out because I'm not sure about requiring MPTCs. Of course, those are already required by "Data.Number.Transfinite" so it's pretty moot...
+
+-- LogFloat->LogFloat is already given via generic (a->a)
+-- No LogFloat->Rational since LogFloat can have 'infinity'
+-- Can't have LogFloat->a using fromLogFloat because Hugs dislikes incoherence. Adding an explicit LogFloat->LogFloat instance doesn't help like it does for GHC.
+
+instance RealToFrac LogFloat Double where
+    realToFrac = fromLogFloat
+    
+instance RealToFrac LogFloat Float where
+    realToFrac = fromLogFloat
+-}
 
 ----------------------------------------------------------------
 ----------------------------------------------------------- fin.

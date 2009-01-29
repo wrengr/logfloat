@@ -1,19 +1,20 @@
 
--- Needed to ensure correctness, because we can't guarantee that rules fire
+-- Needed to ensure correctness, and because we can't guarantee rules fire
 {-# LANGUAGE MultiParamTypeClasses
            , OverlappingInstances
+           , CPP
            #-}
 
 -- Glasgow extensions needed to enable the # kind
-{-# OPTIONS_GHC -cpp -fglasgow-exts #-}
+{-# OPTIONS_GHC -fglasgow-exts #-}
 
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2008.10.16
+--                                                  ~ 2009.01.29
 -- |
 -- Module      :  Data.Number.Transfinite
--- Copyright   :  Copyright (c) 2007--2008 wren ng thornton
+-- Copyright   :  Copyright (c) 2007--2009 wren ng thornton
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
 -- Stability   :  experimental
@@ -49,15 +50,15 @@ module Data.Number.Transfinite
     , RealToFrac(..)
     ) where
 
-import Prelude hiding    (isInfinite, isNaN, log, realToFrac)
-import qualified Prelude (isInfinite, isNaN, log, realToFrac)
+import Prelude hiding    (log, realToFrac,  isInfinite, isNaN)
+import qualified Prelude (log, realToFrac)
+import qualified Hugs.RealFloat as Prelude (isInfinite, isNaN)
 
 import Data.Number.PartialOrd
 
 #ifdef __GLASGOW_HASKELL__
 import GHC.Exts
     ( Int(..), Float(..), Double(..)
--- These should all be provided indirectly from GHC.Prim...
     , int2Double#
     , int2Float#
     , double2Float#
@@ -81,6 +82,11 @@ import GHC.Exts
 -- as well as an exceptional value 'notANumber'. All the natural
 -- laws regarding @infinity@ and @negativeInfinity@ should pertain.
 -- (Some of these are discussed below.)
+--
+-- Hugs (September 2006) has buggy Prelude definitions for
+-- 'Prelude.isNaN' and 'Prelude.isInfinite' on Float and Double.
+-- This module provides correct definitions, so long as "Hugs.RealFloat"
+-- is compiled correctly.
 
 class (PartialOrd a) => Transfinite a where
     
@@ -124,9 +130,11 @@ class (PartialOrd a) => Transfinite a where
     --
     -- Additionally, any mathematical operations on @notANumber@
     -- must also return @notANumber@, and any equality or ordering
-    -- comparison on @notANumber@ must return @False@. Since it
-    -- returns false for equality, there may be more than one machine
-    -- representation of this `value'.
+    -- comparison on @notANumber@ must return @False@ (violating
+    -- the law of the excluded middle, often assumed but not required
+    -- for 'Eq'; thus, 'eq' and 'ne' are preferred over ('==') and
+    -- ('/=')). Since it returns false for equality, there may be
+    -- more than one machine representation of this `value'.
     
     notANumber :: a
     
@@ -138,8 +146,6 @@ class (PartialOrd a) => Transfinite a where
     -- | Return true only for @notANumber@.
     isNaN      :: a -> Bool
 
-
--- BUG: for Hugs (Sept 2006) Prelude.isNaN and Prelude.isInfinite are broken
 
 instance Transfinite Double where
     infinity         = 1/0
@@ -210,8 +216,10 @@ log x = case x `cmp` 0 of
 -- instances are overlapped, so you'll need to give type signatures
 -- if the arguments to 'realToFrac' are polymorphic.
 --
--- If any of these restrictions (CPP, GHC-only, OverlappingInstances)
--- are onerous to you, contact the maintainer (we like patches :)
+-- If any of these restrictions (CPP, GHC-only optimizations,
+-- OverlappingInstances) are onerous to you, contact the maintainer
+-- (we like patches).  Note that this /does/ work for Hugs with
+-- suitable options (e.g. @hugs -98 +o -F'cpp -P'@).
 
 class (Real a, Fractional b) => RealToFrac a b where
     realToFrac :: a -> b

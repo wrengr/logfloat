@@ -1,13 +1,13 @@
 ----------------------------------------------------------------
--- wren ng thornton <wren@community.haskell.org>    ~ 2008.10.16
+-- wren ng thornton <wren@community.haskell.org>    ~ 2009.01.29
 ----------------------------------------------------------------
 
 Name:           logfloat
-Version:        0.9.1.3
+Version:        0.10.0
 Cabal-Version:  >= 1.2
 Build-Type:     Simple
 Stability:      experimental
-Copyright:      Copyright (c) 2007--2008 wren ng thornton
+Copyright:      Copyright (c) 2007--2009 wren ng thornton
 License:        BSD3
 License-File:   LICENSE
 Author:         wren ng thornton
@@ -34,10 +34,14 @@ Library
     Exposed-Modules: Data.Number.LogFloat
                    , Data.Number.Transfinite
                    , Data.Number.PartialOrd
+                   , Hugs.RealFloat
     Build-Depends:   base
 -- No longer needed since we use GHC.Exts instead
 --    if flag(hiddenPrim)
 --        Build-Depends: ghc-prim
+    Hugs-Options: -98 +o -F'cpp -P -D__HUGS__=200609'
+    if impl(ghc < 6.10)
+        GHC-Options: -fno-warn-orphans
 
 ----------------------------------------------------------------
 ----------------------------------------------------------- fin.
