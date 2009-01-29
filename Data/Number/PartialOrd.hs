@@ -6,10 +6,10 @@
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2008.08.29
+--                                                  ~ 2009.01.29
 -- |
 -- Module      :  Data.Number.PartialOrd
--- Copyright   :  Copyright (c) 2007--2008 wren ng thornton
+-- Copyright   :  Copyright (c) 2007--2009 wren ng thornton
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
 -- Stability   :  experimental
@@ -33,54 +33,81 @@ module Data.Number.PartialOrd (PartialOrd(..)) where
 -- Minimum complete definition: 'cmp'
 
 class PartialOrd a where
+    -- | like 'compare'
     cmp   :: a -> a -> Maybe Ordering
     
+    -- | like ('>')
     gt    :: a -> a -> Maybe Bool
     gt x y = case x `cmp` y of
              Just GT -> Just True
              Just _  -> Just False
              Nothing -> Nothing
     
+    -- | like ('>=')
     ge    :: a -> a -> Maybe Bool
     ge x y = case x `cmp` y of
              Just LT -> Just False
              Just _  -> Just True
              Nothing -> Nothing
     
+    -- | like ('==')
     eq    :: a -> a -> Maybe Bool
     eq x y = case x `cmp` y of
              Just EQ -> Just True
              Just _  -> Just False
              Nothing -> Nothing
     
+    -- | like ('/=')
     ne    :: a -> a -> Maybe Bool
     ne x y = case x `cmp` y of
              Just EQ -> Just False
              Just _  -> Just True
              Nothing -> Nothing
     
+    -- | like ('<=')
     le    :: a -> a -> Maybe Bool
     le x y = case x `cmp` y of
              Just GT -> Just False
              Just _  -> Just True
              Nothing -> Nothing
     
+    -- | like ('<')
     lt    :: a -> a -> Maybe Bool
     lt x y = case x `cmp` y of
              Just LT -> Just True
              Just _  -> Just False
              Nothing -> Nothing
+    
+    -- | like 'max'. The default instance returns the left argument
+    -- when they're equal.
+    maxPO    :: a -> a -> Maybe a
+    maxPO x y = do o <- x `cmp` y
+                   case o of
+                       GT -> Just x
+                       EQ -> Just x
+                       LT -> Just y
+    
+    -- | like 'min'. The default instance returns the left argument
+    -- when they're equal.
+    minPO    :: a -> a -> Maybe a
+    minPO x y = do o <- x `cmp` y
+                   case o of
+                       GT -> Just y
+                       EQ -> Just x
+                       LT -> Just x
 
-infix 4 `gt`, `ge`, `eq`, `ne`, `le`, `lt`
+infix 4 `gt`, `ge`, `eq`, `ne`, `le`, `lt`, `maxPO`, `minPO`
 
 instance (Ord a) => PartialOrd a where
-    cmp x y = Just $! compare x y
-    gt  x y = Just $! x >  y
-    ge  x y = Just $! x >= y
-    eq  x y = Just $! x == y
-    ne  x y = Just $! x /= y
-    le  x y = Just $! x <= y
-    lt  x y = Just $! x <  y
+    cmp   x y = Just $! x `compare` y
+    gt    x y = Just $! x >  y
+    ge    x y = Just $! x >= y
+    eq    x y = Just $! x == y
+    ne    x y = Just $! x /= y
+    le    x y = Just $! x <= y
+    lt    x y = Just $! x <  y
+    maxPO x y = Just $! x `max` y
+    minPO x y = Just $! x `min` y
 
 -- BUG: These instances aren't picked up by Hugs, even with +o or +O
 -- Also Hugs (Sept 2006) is buggy where @NaN `compare` x == EQ@
@@ -93,6 +120,16 @@ instance PartialOrd Float where
 instance PartialOrd Double where
     cmp x y | isNaN x || isNaN y = Nothing
             | otherwise          = Just $! x `compare` y
+
+----------------------------------------------------------------
+-- TODO? add maximumPO\/minimumPO via left or right fold?
+
+-- BUG: Haddock doesn't link the `comparing`
+--
+-- | Like @Data.Ord.comparing@. Helpful in conjunction with the
+-- @xxxBy@ family of functions from "Data.List"
+comparingPO :: (PartialOrd b) => (a -> b) -> a -> a -> Maybe Ordering
+comparingPO p x y = p x `cmp` p y
 
 ----------------------------------------------------------------
 ----------------------------------------------------------- fin.
