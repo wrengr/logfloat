@@ -1,18 +1,6 @@
--- TODO: Add QuickCheck-ness, though beware of the fuzz.
--- TODO: Make sure rewrite rules really fire
--- TODO: profile to make sure we don't waste too much time constructing
---       dictionaries
--- TODO: write strict variant to unpack into registers
--- TODO: write the signed variant
 
 -- Needed by our RealToFrac contexts
 {-# LANGUAGE FlexibleContexts #-}
-
--- To turn on optimizations and look at the optimization records, cf:
--- http://www.haskell.org/ghc/docs/latest/html/users_guide/rewrite-rules.html
--- http://www.randomhacks.net/articles/2007/02/10/map-fusion-and-haskell-performance
-
--- {-# OPTIONS_GHC -ddump-rules -ddump-simpl-stats #-}
 
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 

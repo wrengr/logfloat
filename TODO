@@ -1,5 +1,14 @@
 * Add a strict variant
   - Make it default and move the current to Data.Number.LogFloat.Lazy
+  - Make sure it unpacks into registers
 * Add a signed variant
 * Add some unit tests for regression checking
   - but beware of the fuzz
+  - Make sure to test transfinite values everywhere in Hugs
+* Profile or look at Core to make sure we do not waste too much time constructing dictionaries. If so, reconsider the four smart constructors/destructors.
+
+* Make sure rewrite rules really fire
+-- To turn on optimizations and look at the optimization records, cf:
+-- http://www.haskell.org/ghc/docs/latest/html/users_guide/rewrite-rules.html
+-- http://www.randomhacks.net/articles/2007/02/10/map-fusion-and-haskell-performance
+-- {-# OPTIONS_GHC -ddump-rules -ddump-simpl-stats #-}
