@@ -3,7 +3,7 @@
 ----------------------------------------------------------------
 
 Name:           logfloat
-Version:        0.11.0
+Version:        0.11.0.1
 Cabal-Version:  >= 1.2
 Build-Type:     Simple
 Stability:      experimental
@@ -15,7 +15,7 @@ Maintainer:     wren@community.haskell.org
 Homepage:       http://code.haskell.org/~wren/
 Category:       Data, Math, Natural Language Processing
 Synopsis:       Log-domain floating point numbers
-Description:    This module presents a class for storing numbers
+Description:    This module presents a type for storing numbers
                 in the log-domain. The main reason for doing this
                 is to prevent underflow when multiplying many
                 probabilities as is done in Hidden Markov Models.
@@ -32,6 +32,7 @@ Description:    This module presents a class for storing numbers
 
 Library
     Exposed-Modules: Data.Number.LogFloat
+                   , Data.Number.RealToFrac
                    , Data.Number.Transfinite
                    , Data.Number.PartialOrd
                    , Hugs.RealFloat

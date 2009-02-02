@@ -13,6 +13,7 @@
 {-# OPTIONS_GHC -O2 -fvia-C -optc-O3 -fexcess-precision -fglasgow-exts #-}
 
 -- Version History
+-- (v0.11)  Broke Data.Number.RealToFrac out
 -- (v0.10)  Fixed bugs in Hugs for PartialOrd and Transfinite.
 --          Also added maxPO, minPO, comparingPO
 -- (v0.9.1) Fixed some PartialOrd stuff and sanitized documentation
