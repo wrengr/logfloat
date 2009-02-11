@@ -1,11 +1,11 @@
 -- Needed to ensure correctness, and because we can't guarantee rules fire
+-- The MagicHash is for unboxed primitives (-fglasgow-exts also works)
 {-# LANGUAGE MultiParamTypeClasses
            , OverlappingInstances
+           , FlexibleInstances
            , CPP
+           , MagicHash
            #-}
-
--- Glasgow extensions needed to enable the # kind
-{-# OPTIONS_GHC -fglasgow-exts #-}
 
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 

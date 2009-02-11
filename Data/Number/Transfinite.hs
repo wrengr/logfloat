@@ -1,5 +1,5 @@
--- Glasgow extensions needed to enable the # kind
-{-# OPTIONS_GHC -fglasgow-exts #-}
+-- The MagicHash is for unboxed primitives (-fglasgow-exts also works)
+{-# LANGUAGE MagicHash #-}
 
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
