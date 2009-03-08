@@ -21,20 +21,14 @@ Description:    This module presents a type for storing numbers
                 probabilities as is done in Hidden Markov Models.
                 It is also helpful for preventing overflow.
 
--- Doing it this way uncovers a bug in Cabal-1.2.3.0:
--- "Setup.hs: 'parseField' called on a non-field.  This is a bug."
---Flag hiddenPrim
---    Description: Use GHC 6.10's newly hidden package for GHC.Prim
---    if impl(ghc >= 6.10)
---        Default: true
---    else
---        Default: false
 
 Flag splitBase
     Description: base-3.0 broke out array and other packages
     Default:     False
-    
+
+
 Library
+    Hs-Source-Dirs:  src
     Exposed-Modules: Data.Number.LogFloat
                    , Data.Number.RealToFrac
                    , Data.Number.Transfinite
@@ -44,9 +38,7 @@ Library
         Build-depends: base >= 3.0, array
     else
         Build-depends: base < 3.0
--- No longer needed since we use GHC.Exts instead
---    if flag(hiddenPrim)
---        Build-Depends: ghc-prim
+    
     Hugs-Options: -98 +o -F'cpp -P -traditional -D__HUGS__=200609'
     if impl(ghc < 6.10)
         GHC-Options: -fno-warn-orphans
