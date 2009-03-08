@@ -1,6 +1,8 @@
 
--- Needed by our RealToFrac contexts
-{-# LANGUAGE FlexibleContexts #-}
+-- FlexibleContexts needed by our RealToFrac contexts
+-- CPP needed for IArray UArray instance
+{-# LANGUAGE FlexibleContexts
+           , CPP #-}
 
 -- Removed -Wall because -fno-warn-orphans was removed in GHC 6.10
 {-# OPTIONS_GHC -fwarn-tabs #-}
@@ -13,6 +15,7 @@
 {-# OPTIONS_GHC -O2 -fvia-C -optc-O3 -fexcess-precision -fglasgow-exts #-}
 
 -- Version History
+-- (v0.11.1) Added IArray UArray instance
 -- (v0.11)  Broke Data.Number.RealToFrac out
 -- (v0.10)  Fixed bugs in Hugs for PartialOrd and Transfinite.
 --          Also added maxPO, minPO, comparingPO
@@ -34,14 +37,14 @@
 -- (v0.1) Initial version created for hw5 for NLP with Jason Eisner.
 --
 ----------------------------------------------------------------
---                                                  ~ 2008.08.29
+--                                                  ~ 2009.03.07
 -- |
 -- Module      :  Data.Number.LogFloat
 -- Copyright   :  Copyright (c) 2007--2009 wren ng thornton
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
 -- Stability   :  stable
--- Portability :  portable
+-- Portability :  portable (with CPP)
 --
 -- This module presents a type for storing numbers in the log-domain.
 -- The main reason for doing this is to prevent underflow when
@@ -78,6 +81,20 @@ import Prelude hiding (log, realToFrac, isInfinite, isNaN)
 import Data.Number.RealToFrac
 import Data.Number.Transfinite
 import Data.Number.PartialOrd
+
+
+-- GHC can derive (IArray UArray LogFloat), but Hugs needs to coerce
+-- TODO: see about nhc98/yhc, jhc/lhc
+import Data.Array.Base    (IArray(..))
+import Data.Array.Unboxed (UArray)
+
+-- Hugs (Sept 2006) doesn't use the generic wrapper in base:Unsafe.Coerce
+-- so we'll just have to go back to the original source.
+#ifdef __HUGS__
+import Hugs.IOExts (unsafeCoerce)
+#elif __NHC__
+import NonStdUnsafeCoerce (unsafeCoerce)
+#endif
 
 ----------------------------------------------------------------
 --
@@ -135,6 +152,9 @@ guardNonNegative fun x | x >= 0    = x
                        | otherwise = errorOutOfRange fun
 
 
+-- TODO: since we're using Hugs.RealFloat instead of Prelude now,
+-- is it still non-portable?
+--
 -- |  It's unfortunate that 'notANumber' is not equal to itself, but
 -- we can hack around that. GHC gives NaN for the log of negatives
 -- and so we could ideally take advantage of @log . guardNonNegative
@@ -172,7 +192,87 @@ guardIsANumber   fun x | isNaN x   = errorOutOfRange fun
 -- if you can parenthesize to do plain operations first, do it!
 
 newtype LogFloat = LogFloat Double
-    deriving (Eq, Ord) -- Should we really perpetuate the Ord lie?
+    deriving
+    ( Eq
+    , Ord -- Should we really perpetuate the Ord lie?
+#ifdef __GLASGOW_HASKELL__
+    , IArray UArray
+    -- At least GHC 6.8.2 can derive IArray UArray (without
+    -- GeneralizedNewtypeDeriving). The H98 Report doesn't include
+    -- that among the options for automatic derivation though.
+#endif
+    )
+
+
+#if __HUGS__ || __NHC__
+
+-- These two operators make it much easier to read the instance.
+-- Hopefully inlining everything will get rid of the eta overhead.
+-- <http://matt.immute.net/content/pointless-fun>
+{-# INLINE (~>) #-}
+infixr 2 ~>
+f ~> g = (. f) . (g .)
+
+{-# INLINE ($.) #-}
+infixl 1 $.
+($.) = flip ($)
+
+
+{-# INLINE logFromLFAssocs #-}
+logFromLFAssocs :: [(Int, LogFloat)] -> [(Int, Double)]
+logFromLFAssocs = unsafeCoerce
+
+{-# INLINE logFromLFUArray #-}
+logFromLFUArray :: UArray a LogFloat -> UArray a Double
+logFromLFUArray = unsafeCoerce
+
+{-# INLINE logToLFUArray #-}
+logToLFUArray   :: UArray a Double -> UArray a LogFloat
+logToLFUArray   = unsafeCoerce
+
+{-# INLINE logToLFFunc #-}
+logToLFFunc :: (LogFloat -> a -> LogFloat) -> (Double -> a -> Double)
+logToLFFunc = ($. unsafeLogToLogFloat ~> id ~> logFromLogFloat)
+
+-- | Remove the extranious 'isNaN' test of 'logToLogFloat', when
+-- we know we can.
+{-# INLINE unsafeLogToLogFloat #-}
+unsafeLogToLogFloat :: Double -> LogFloat
+unsafeLogToLogFloat = LogFloat
+
+
+instance IArray UArray LogFloat where
+    {-# INLINE bounds #-}
+    bounds = bounds . logFromLFUArray
+    
+-- Apparently this method was added in base-2.0/GHC-6.6 but Hugs
+-- (Sept 2006) doesn't have it. Not sure about NHC's base
+#if __HUGS__ > 200609
+    {-# INLINE numElements #-}
+    numElements = numElements . logFromLFUArray
+#endif
+    
+    {-# INLINE unsafeArray #-}
+    unsafeArray =
+        unsafeArray $. id ~> logFromLFAssocs ~> logToLFUArray
+    
+    {-# INLINE unsafeAt #-}
+    unsafeAt =
+        unsafeAt $. logFromLFUArray ~> id ~> unsafeLogToLogFloat
+    
+    {-# INLINE unsafeReplace #-}
+    unsafeReplace =
+        unsafeReplace $. logFromLFUArray ~> logFromLFAssocs ~> logToLFUArray
+    
+    {-# INLINE unsafeAccum #-}
+    unsafeAccum =
+        unsafeAccum $. logToLFFunc ~> logFromLFUArray ~> id ~> logToLFUArray
+    
+    {-# INLINE unsafeAccumArray #-}
+    unsafeAccumArray =
+        unsafeAccumArray $. logToLFFunc ~> logFromLogFloat ~> id ~> id ~> logToLFUArray
+#endif
+
 
 instance PartialOrd LogFloat where
     cmp (LogFloat x) (LogFloat y) 
@@ -180,6 +280,7 @@ instance PartialOrd LogFloat where
         | otherwise          = Just $! x `compare` y
 
 
+----------------------------------------------------------------
 -- | A constructor which does semantic conversion from normal-domain
 -- to log-domain.
 logFloat :: (Real a, RealToFrac a Double) => a -> LogFloat

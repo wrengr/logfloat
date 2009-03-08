@@ -1,6 +1,3 @@
--- The MagicHash is for unboxed primitives (-fglasgow-exts also works)
-{-# LANGUAGE MagicHash #-}
-
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
 ----------------------------------------------------------------

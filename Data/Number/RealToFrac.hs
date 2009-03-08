@@ -1,5 +1,6 @@
 -- Needed to ensure correctness, and because we can't guarantee rules fire
 -- The MagicHash is for unboxed primitives (-fglasgow-exts also works)
+--     We only need MagicHash if on GHC, but we can't hide it in an #ifdef
 {-# LANGUAGE MultiParamTypeClasses
            , OverlappingInstances
            , FlexibleInstances

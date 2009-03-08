@@ -12,3 +12,5 @@
 -- http://www.haskell.org/ghc/docs/latest/html/users_guide/rewrite-rules.html
 -- http://www.randomhacks.net/articles/2007/02/10/map-fusion-and-haskell-performance
 -- {-# OPTIONS_GHC -ddump-rules -ddump-simpl-stats #-}
+
+* See about implementations of IArray UArray LogFloat for nhc98/yhc, jhc/lhc.

@@ -3,7 +3,7 @@
 ----------------------------------------------------------------
 
 Name:           logfloat
-Version:        0.11.0.1
+Version:        0.11.1
 Cabal-Version:  >= 1.2
 Build-Type:     Simple
 Stability:      experimental
@@ -30,17 +30,24 @@ Description:    This module presents a type for storing numbers
 --    else
 --        Default: false
 
+Flag splitBase
+    Description: base-3.0 broke out array and other packages
+    Default:     False
+    
 Library
     Exposed-Modules: Data.Number.LogFloat
                    , Data.Number.RealToFrac
                    , Data.Number.Transfinite
                    , Data.Number.PartialOrd
                    , Hugs.RealFloat
-    Build-Depends:   base
+    if flag(splitBase)
+        Build-depends: base >= 3.0, array
+    else
+        Build-depends: base < 3.0
 -- No longer needed since we use GHC.Exts instead
 --    if flag(hiddenPrim)
 --        Build-Depends: ghc-prim
-    Hugs-Options: -98 +o -F'cpp -P -D__HUGS__=200609'
+    Hugs-Options: -98 +o -F'cpp -P -traditional -D__HUGS__=200609'
     if impl(ghc < 6.10)
         GHC-Options: -fno-warn-orphans
 
