@@ -87,33 +87,6 @@ import NonStdUnsafeCoerce (unsafeCoerce)
 "toRational.fromRational"            toRational . fromRational   = id
     #-}
 
-
-----------------------------------------------------------------
-
--- | Reduce the number of constant string literals we need to store.
-errorOutOfRange    :: String -> a
-errorOutOfRange fun = error $! "Data.Number.LogFloat."++fun
-                            ++ ": argument out of range"
-
-
--- | We need these guards in order to ensure some invariants.
-guardNonNegative      :: String -> Double -> Double
-guardNonNegative fun x | x >= 0    = x
-                       | otherwise = errorOutOfRange fun
-
-
--- TODO: since we're using Hugs.RealFloat instead of Prelude now,
--- is it still non-portable?
---
--- |  It's unfortunate that 'notANumber' is not equal to itself, but
--- we can hack around that. GHC gives NaN for the log of negatives
--- and so we could ideally take advantage of @log . guardNonNegative
--- fun = guardIsANumber fun . log@ to simplify things, but Hugs
--- raises an error so that's non-portable.
-guardIsANumber        :: String -> Double -> Double
-guardIsANumber   fun x | isNaN x   = errorOutOfRange fun
-                       | otherwise = x
-
 ----------------------------------------------------------------
 --
 -- | A @LogFloat@ is just a 'Double' with a special interpretation.
@@ -229,6 +202,31 @@ instance PartialOrd LogFloat where
         | isNaN x || isNaN y = Nothing
         | otherwise          = Just $! x `compare` y
 
+
+----------------------------------------------------------------
+-- | Reduce the number of constant string literals we need to store.
+errorOutOfRange    :: String -> a
+errorOutOfRange fun = error $! "Data.Number.LogFloat."++fun
+                            ++ ": argument out of range"
+
+
+-- | We need these guards in order to ensure some invariants.
+guardNonNegative      :: String -> Double -> Double
+guardNonNegative fun x | x >= 0    = x
+                       | otherwise = errorOutOfRange fun
+
+
+-- TODO: since we're using Hugs.RealFloat instead of Prelude now,
+-- is it still non-portable?
+--
+-- |  It's unfortunate that 'notANumber' is not equal to itself, but
+-- we can hack around that. GHC gives NaN for the log of negatives
+-- and so we could ideally take advantage of @log . guardNonNegative
+-- fun = guardIsANumber fun . log@ to simplify things, but Hugs
+-- raises an error so that's non-portable.
+guardIsANumber        :: String -> Double -> Double
+guardIsANumber   fun x | isNaN x   = errorOutOfRange fun
+                       | otherwise = x
 
 ----------------------------------------------------------------
 -- | Constructor which does semantic conversion from normal-domain
