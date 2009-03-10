@@ -1,3 +1,5 @@
+* Benchmark "<math.h> log1p" via FFI vs Haskell native
+
 * Add a strict variant
   - Make it default and move the current to Data.Number.LogFloat.Lazy
   - Make sure it unpacks into registers

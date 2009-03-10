@@ -324,16 +324,20 @@ instance Num LogFloat where
     
     
     (*) (LogFloat x) (LogFloat y) = LogFloat (x+y)
-
+    
+    -- In C we could optimize this further by using "<math.h> log1p"
+    -- in place of @log . (1+)@
+    -- TODO: benchmark using the FFI to do this. Maybe the CDouble#
+    -- vs Double will make it suck.
     (+) (LogFloat x) (LogFloat y)
         | x >= y    = LogFloat (x + log (1 + exp (y - x)))
         | otherwise = LogFloat (y + log (1 + exp (x - y)))
-
+    
     -- Without the guard this would return NaN instead of error
     (-) (LogFloat x) (LogFloat y)
         | x >= y    = LogFloat (x + log (1 - exp (y - x)))
         | otherwise = errorOutOfRange "(-)"
-
+    
     signum (LogFloat x)
         | x == negativeInfinity = 0
         | x >  negativeInfinity = 1
