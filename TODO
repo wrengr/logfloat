@@ -14,3 +14,4 @@
 -- {-# OPTIONS_GHC -ddump-rules -ddump-simpl-stats #-}
 
 * See about implementations of IArray UArray LogFloat for nhc98/yhc, jhc/lhc.
+* Send update notice about the IArray instance, with thanks to Felipe Lessa (0.11.1)

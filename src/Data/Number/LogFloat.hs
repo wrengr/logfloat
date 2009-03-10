@@ -1,8 +1,7 @@
 
 -- FlexibleContexts needed by our RealToFrac contexts
 -- CPP needed for IArray UArray instance
-{-# LANGUAGE FlexibleContexts
-           , CPP #-}
+{-# LANGUAGE FlexibleContexts, CPP #-}
 
 -- Removed -Wall because -fno-warn-orphans was removed in GHC 6.10
 {-# OPTIONS_GHC -fwarn-tabs #-}
@@ -14,28 +13,6 @@
 -- cf <http://www.mail-archive.com/glasgow-haskell-users@haskell.org/msg14313.html>
 {-# OPTIONS_GHC -O2 -fvia-C -optc-O3 -fexcess-precision -fglasgow-exts #-}
 
--- Version History
--- (v0.11.1) Added IArray UArray instance
--- (v0.11)  Broke Data.Number.RealToFrac out
--- (v0.10)  Fixed bugs in Hugs for PartialOrd and Transfinite.
---          Also added maxPO, minPO, comparingPO
--- (v0.9.1) Fixed some PartialOrd stuff and sanitized documentation
--- (v0.9.0) s/toFractional/realToFrac/g.
---          Also moved realToFrac and log to Transfinite
--- (v0.8.6) Removed buggy RULES
--- (v0.8.5) Gave up and converted from lhs to hs so Hackage docs work
--- (v0.8.4) Broke out Transfinite
--- (v0.8.3) Documentation updates
--- (v0.8.2) Announced release
--- (v0.8) Did a bunch of tweaking. Things should be decent now
--- (v0.7) Haddockified
--- (v0.6) Fixed monomorphism.
--- (v0.5) Added optimization rules.
--- (v0.4) Translated to Haskell at revision 2007.12.20.
--- (v0.3) Converted extensive comments to POD format.
--- (v0.2) Did a bunch of profiling, optimizing, and debugging.
--- (v0.1) Initial version created for hw5 for NLP with Jason Eisner.
---
 ----------------------------------------------------------------
 --                                                  ~ 2009.03.07
 -- |
@@ -61,7 +38,7 @@
 -- The 'LogFloat' of this module is restricted to non-negative
 -- numbers for efficiency's sake, see the forthcoming
 -- "Data.Number.LogFloat.Signed" for doing signed log-domain
--- calculations.
+-- calculations. (Or harass the maintainer to write it already.)
 ----------------------------------------------------------------
 
 module Data.Number.LogFloat
@@ -72,8 +49,12 @@ module Data.Number.LogFloat
     
     -- * @LogFloat@ data type and conversion functions
     , LogFloat
-    , logFloat,     logToLogFloat
-    , fromLogFloat, logFromLogFloat
+    -- ** Isomorphism to normal-domain
+    , logFloat
+    , fromLogFloat
+    -- ** Isomorphism to log-domain
+    , logToLogFloat
+    , logFromLogFloat
     ) where
 
 import Prelude hiding (log, realToFrac, isInfinite, isNaN)
@@ -281,8 +262,8 @@ instance PartialOrd LogFloat where
 
 
 ----------------------------------------------------------------
--- | A constructor which does semantic conversion from normal-domain
--- to log-domain.
+-- | Constructor which does semantic conversion from normal-domain
+-- to log-domain. Throws errors on negative input.
 logFloat :: (Real a, RealToFrac a Double) => a -> LogFloat
 {-# SPECIALIZE logFloat :: Double -> LogFloat #-}
 logFloat  = LogFloat . log . guardNonNegative "logFloat" . realToFrac
@@ -296,7 +277,7 @@ logFloat  = LogFloat . log . guardNonNegative "logFloat" . realToFrac
 -- constructors\/destructors.
 --
 -- | Constructor which assumes the argument is already in the
--- log-domain.
+-- log-domain. Throws errors on @notANumber@ input.
 logToLogFloat :: (Real a, RealToFrac a Double) => a -> LogFloat
 {-# SPECIALIZE logToLogFloat :: Double -> LogFloat #-}
 logToLogFloat  = LogFloat . guardIsANumber "logToLogFloat" . realToFrac
@@ -310,7 +291,7 @@ fromLogFloat :: (Fractional a, Transfinite a, RealToFrac Double a)
 fromLogFloat (LogFloat x) = realToFrac (exp x)
 
 
--- | Return the log-domain value itself without costly conversion
+-- | Return the log-domain value itself without conversion.
 logFromLogFloat :: (Fractional a, Transfinite a, RealToFrac Double a)
                 => LogFloat -> a
 {-# SPECIALIZE logFromLogFloat :: LogFloat -> Double #-}

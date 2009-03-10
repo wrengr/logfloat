@@ -91,9 +91,13 @@ class (PartialOrd a) => Transfinite a where
     -- operations must return @notANumber@, where @inf@ is any value
     -- which @isInfinite@:
     --
-    -- * @inf + inf@
+    -- * @infinity + negativeInfinity@
     --
-    -- * @inf - inf@
+    -- * @negativeInfinity + infinity@
+    --
+    -- * @infinity - infinity@
+    --
+    -- * @negativeInfinity - negativeInfinity@
     --
     -- * @inf * 0@
     --

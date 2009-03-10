@@ -36,6 +36,7 @@ import qualified Prelude
 ----------------------------------------------------------------
 
 isInfinite  :: (RealFloat a) => a -> Bool
+{-# SPECIALIZE isInfinite :: Double -> Bool #-}
 {-# INLINE isInfinite #-}
 #if defined(__HUGS__) && (__HUGS__ <= 200609)
 isInfinite x = (1/0) == abs x
@@ -45,6 +46,7 @@ isInfinite = Prelude.isInfinite
 
 
 isNaN :: (RealFloat a) => a -> Bool
+{-# SPECIALIZE isNaN :: Double -> Bool #-}
 {-# INLINE isNaN #-}
 #if defined(__HUGS__) && (__HUGS__ <= 200609)
 isNaN x = compareEQ x 0 && compareEQ x 1

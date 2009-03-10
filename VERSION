@@ -1,0 +1,48 @@
+0.11.1.1 (2009-03-09):
+    - Documentation updates
+0.11.1 (2009-03-08):
+    - Added IArray UArray LogFloat instance.
+0.11 (2009-01-29):
+    - Broke Data.Number.RealToFrac out
+	- Cabal build fail due to missing new module (Fixed in 0.11.0.1).
+
+0.10 (2009-01-29):
+    - Fixed bugs in Hugs for PartialOrd and Transfinite.
+    - Also added maxPO, minPO, comparingPO
+
+0.9.1 (2008-08-30):
+    - Fixed some PartialOrd stuff and sanitized documentation
+	- Build fail on GHC 6.10 due to GHC.Prim (Fixed in 0.9.1.1).
+0.9.0 (2008-08-30):
+    - s/toFractional/realToFrac/g.
+    - Also moved realToFrac and log to Transfinite
+	- Build fail on GHC 6.10 due to GHC.Prim
+
+0.8.6 (2008-08-17):
+    - Removed buggy RULES
+	- Build fail on GHC 6.10 due to -Werror and removal of -fno-warn-orphans
+0.8.5 (2008-08-17):
+    - Gave up and converted from lhs to hs so Hackage docs work
+0.8.4 (2008-08-17):
+    - Broke out Transfinite
+0.8.3 (2008-08-16):
+    - Documentation updates
+0.8.2 (2008-08-14):
+    - Announced release
+0.8:
+    - Did a bunch of tweaking. Things should be decent now
+
+0.7:
+    - Haddockified
+0.6:
+    - Fixed monomorphism of LogFloat constructors/destructors.
+0.5:
+    - Added optimization rules.
+0.4:
+    - Translated from Perl to Haskell at revision 2007.12.20.
+0.3:
+    - Converted extensive comments to POD format.
+0.2:
+    - Did a bunch of profiling, optimizing, and debugging.
+0.1:
+    - Initial version (in Perl) created for hw5 for NLP with Jason Eisner.
