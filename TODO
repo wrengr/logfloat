@@ -1,12 +1,14 @@
-* Benchmark "<math.h> log1p" via FFI vs Haskell native
+* Switch to using "<math.h> log1p" via FFI
+  - Figure out how to tell Cabal to tell hugs to run ffihugs
 
-* Add a strict variant
-  - Make it default and move the current to Data.Number.LogFloat.Lazy
-  - Make sure it unpacks into registers
+* Add a strict variant. Actually, I think the current version is as strict as it can be thanks to newtype data-constructors being strict. Should verify this (how?) and make sure things unpack into registers (how?)
+
 * Add a signed variant
+
 * Add some unit tests for regression checking
   - but beware of the fuzz
   - Make sure to test transfinite values everywhere in Hugs
+
 * Profile or look at Core to make sure we do not waste too much time constructing dictionaries. If so, reconsider the four smart constructors/destructors.
 
 * Make sure rewrite rules really fire
@@ -16,4 +18,4 @@
 -- {-# OPTIONS_GHC -ddump-rules -ddump-simpl-stats #-}
 
 * See about implementations of IArray UArray LogFloat for nhc98/yhc, jhc/lhc.
-* Send update notice about the IArray instance, with thanks to Felipe Lessa (0.11.1)
+  - Send update notice about the IArray instance, with thanks to Felipe Lessa (0.11.1)
