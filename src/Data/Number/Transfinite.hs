@@ -1,7 +1,14 @@
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
+-- Unfortunately we need -fglasgow-exts in order to actually pick
+-- up on the rules (see -ddump-rules). The -frewrite-rules flag
+-- doesn't do what you want.
+-- <http://hackage.haskell.org/trac/ghc/ticket/2213>
+-- <http://www.mail-archive.com/glasgow-haskell-users@haskell.org/msg14313.html>
+{-# OPTIONS_GHC -fglasgow-exts #-}
+
 ----------------------------------------------------------------
---                                                  ~ 2009.01.29
+--                                                  ~ 2009.03.09
 -- |
 -- Module      :  Data.Number.Transfinite
 -- Copyright   :  Copyright (c) 2007--2009 wren ng thornton
@@ -167,6 +174,14 @@ instance Transfinite Float where
 -- for your @0@ and @negativeInfinity@. If it doesn't, then you
 -- should avoid importing our @log@ and will probably want converters
 -- to handle the discrepancy.
+--
+-- For GHC, this version of @log@ has rules for fusion with @exp@.
+-- These can give different behavior by preventing overflow to
+-- @infinity@ and preventing errors for taking the logarithm of
+-- negative values. For 'Double' and 'Float' they can also give
+-- different answers due to eliminating floating point fuzz. The
+-- rules strictly improve mathematical accuracy, however they should
+-- be noted in case your code depends on the implementation details.
 
 log  :: (Floating a, Transfinite a) => a -> a
 {-# SPECIALIZE log :: Double -> Double #-}
@@ -184,5 +199,28 @@ log x = case x `cmp` 0 of
 -- hack our way around without using PartialOrd by using isNaN, (==
 -- 0), ((>0).signum) but that would be less efficient.
 
+----------------------------------------------------------------
+-- These rules moved here from "LogFloat" in v0.11.2
+{-# RULES
+"log/exp"  forall x. log (exp x) = x
+"log.exp"            log . exp   = id
+
+"exp/log"  forall x. exp (log x) = x
+"exp.log"            exp . log   = id
+    #-}
+
+-- We'd like to be able to take advantage of general rule versions
+-- of our operators for 'LogFloat', with rules like @log x + log y
+-- = log (x * y)@ and @log x - log y = log (x / y)@. However the
+-- problem is that those equations could be driven in either direction
+-- depending on whether we think time performance or non-underflow
+-- performance is more important, and the answers may be different
+-- at every call site.
+--
+-- Since we implore users to do normal-domain computations whenever
+-- it would not degenerate accuracy, we should not rewrite their
+-- decisions in any way. The log\/exp fusion strictly improves both
+-- time and accuracy, so those are safe. But the buck stops with
+-- them.
 ----------------------------------------------------------------
 ----------------------------------------------------------- fin.
