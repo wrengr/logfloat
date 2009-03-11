@@ -1,10 +1,14 @@
 
 -- FlexibleContexts needed by our RealToFrac contexts
 -- CPP needed for IArray UArray instance
-{-# LANGUAGE FlexibleContexts, CPP #-}
+-- FFI is for log1p
+{-# LANGUAGE FlexibleContexts
+           , CPP
+           , ForeignFunctionInterface
+           #-}
 
 -- Removed -Wall because -fno-warn-orphans was removed in GHC 6.10
-{-# OPTIONS_GHC -fwarn-tabs #-}
+{-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
 -- Unfortunately we need -fglasgow-exts in order to actually pick
 -- up on the rules (see -ddump-rules). The -frewrite-rules flag
@@ -14,14 +18,14 @@
 {-# OPTIONS_GHC -O2 -fvia-C -optc-O3 -fexcess-precision -fglasgow-exts #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2009.03.09
+--                                                  ~ 2009.03.10
 -- |
 -- Module      :  Data.Number.LogFloat
 -- Copyright   :  Copyright (c) 2007--2009 wren ng thornton
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
 -- Stability   :  stable
--- Portability :  portable (with CPP)
+-- Portability :  portable (with CPP, FFI)
 --
 -- This module presents a type for storing numbers in the log-domain.
 -- The main reason for doing this is to prevent underflow when
@@ -47,7 +51,7 @@ module Data.Number.LogFloat
       module Data.Number.Transfinite
     , module Data.Number.RealToFrac
     
-    -- * @LogFloat@ data type and conversion functions
+    -- * @LogFloat@ data type
     , LogFloat
     -- ** Isomorphism to normal-domain
     , logFloat
@@ -55,6 +59,9 @@ module Data.Number.LogFloat
     -- ** Isomorphism to log-domain
     , logToLogFloat
     , logFromLogFloat
+    
+    -- * @log1p@
+    , log1p
     ) where
 
 import Prelude hiding (log, realToFrac, isInfinite, isNaN)
@@ -77,15 +84,9 @@ import Hugs.IOExts (unsafeCoerce)
 import NonStdUnsafeCoerce (unsafeCoerce)
 #endif
 
-----------------------------------------------------------------
--- These should only fire when it's type-safe
--- This should already happen, but...
--- TODO: Check the logs to see if it ever fires
--- N.B. these are orphaned
-{-# RULES
-"toRational/fromRational"  forall x. toRational (fromRational x) = x
-"toRational.fromRational"            toRational . fromRational   = id
-    #-}
+#ifdef __GLASGOW_HASKELL__
+import Foreign.Storable (Storable)
+#endif
 
 ----------------------------------------------------------------
 --
@@ -119,15 +120,17 @@ newtype LogFloat = LogFloat Double
     ( Eq
     , Ord -- Should we really perpetuate the Ord lie?
 #ifdef __GLASGOW_HASKELL__
-    , IArray UArray
-    -- At least GHC 6.8.2 can derive IArray UArray (without
+    -- At least GHC 6.8.2 can derive these (without
     -- GeneralizedNewtypeDeriving). The H98 Report doesn't include
-    -- that among the options for automatic derivation though.
+    -- them among the options for automatic derivation though.
+    , IArray UArray
+    , Storable
 #endif
     )
 
 
 #if __HUGS__ || __NHC__
+-- TODO: Storable instance. Though Foreign.Storable isn't in Hugs(Sept06)
 
 -- These two operators make it much easier to read the instance.
 -- Hopefully inlining everything will get rid of the eta overhead.
@@ -158,7 +161,7 @@ logToLFFunc :: (LogFloat -> a -> LogFloat) -> (Double -> a -> Double)
 logToLFFunc = ($. unsafeLogToLogFloat ~> id ~> logFromLogFloat)
 
 -- | Remove the extranious 'isNaN' test of 'logToLogFloat', when
--- we know we can.
+-- we know it's safe.
 {-# INLINE unsafeLogToLogFloat #-}
 unsafeLogToLogFloat :: Double -> LogFloat
 unsafeLogToLogFloat = LogFloat
@@ -206,6 +209,7 @@ instance PartialOrd LogFloat where
 ----------------------------------------------------------------
 -- | Reduce the number of constant string literals we need to store.
 errorOutOfRange    :: String -> a
+{-# NOINLINE errorOutOfRange #-}
 errorOutOfRange fun = error $! "Data.Number.LogFloat."++fun
                             ++ ": argument out of range"
 
@@ -216,14 +220,11 @@ guardNonNegative fun x | x >= 0    = x
                        | otherwise = errorOutOfRange fun
 
 
--- TODO: since we're using Hugs.RealFloat instead of Prelude now,
--- is it still non-portable?
---
--- |  It's unfortunate that 'notANumber' is not equal to itself, but
--- we can hack around that. GHC gives NaN for the log of negatives
--- and so we could ideally take advantage of @log . guardNonNegative
--- fun = guardIsANumber fun . log@ to simplify things, but Hugs
--- raises an error so that's non-portable.
+-- | In general @log . guardNonNegative fun == guardIsANumber fun . log@
+-- This even holds on Hugs now. However, the latter issues an error
+-- from 'Data.Number.Transfinite.log' whereas the former issues an
+-- error from the calling function and is therefore more helpful
+-- for debugging.
 guardIsANumber        :: String -> Double -> Double
 guardIsANumber   fun x | isNaN x   = errorOutOfRange fun
                        | otherwise = x
@@ -306,6 +307,38 @@ instance Show LogFloat where
 
 
 ----------------------------------------------------------------
+#ifdef __USE_FFI_FOR_LOG1P__
+#define LOG1P_WHICH_VERSION specialized version.
+#else
+#define LOG1P_WHICH_VERSION naive version! \
+    Contact the maintainer with any FFI difficulties.
+#endif
+-- | Definition: @log1p == log . (1+)@. The C language provides a
+-- special definition for 'log1p' which is more accurate than doing
+-- the naive thing, especially for very small arguments. For example,
+-- the naive version underflows around @2 ** -53@, whereas the
+-- specialized version underflows around @2 ** -1074@. This function
+-- is used by ('+') and ('-') on @LogFloat@.
+--
+-- /This installation was compiled to use the LOG1P_WHICH_VERSION/
+
+#ifdef __USE_FFI_FOR_LOG1P__
+foreign import ccall unsafe "math.h log1p"
+    log1p :: Double -> Double
+
+-- Technically we should use 'Foreign.C.CDouble' however there's
+-- no isomorphism provided to normal 'Double'. The former is
+-- documented as being a newtype of the later, and so this should
+-- be safe.
+
+#else
+
+log1p :: Double -> Double
+{-# INLINE log1p #-}
+log1p x = log (1 + x)
+#endif
+
+----------------------------------------------------------------
 -- These all work without causing underflow. However, do note that
 -- they tend to induce more of the floating-point fuzz than using
 -- regular floating numbers because @exp . log@ doesn't really equal
@@ -325,17 +358,13 @@ instance Num LogFloat where
     
     (*) (LogFloat x) (LogFloat y) = LogFloat (x+y)
     
-    -- In C we could optimize this further by using "<math.h> log1p"
-    -- in place of @log . (1+)@
-    -- TODO: benchmark using the FFI to do this. Maybe the CDouble#
-    -- vs Double will make it suck.
     (+) (LogFloat x) (LogFloat y)
-        | x >= y    = LogFloat (x + log (1 + exp (y - x)))
-        | otherwise = LogFloat (y + log (1 + exp (x - y)))
+        | x >= y    = LogFloat (x + log1p (exp (y - x)))
+        | otherwise = LogFloat (y + log1p (exp (x - y)))
     
     -- Without the guard this would return NaN instead of error
     (-) (LogFloat x) (LogFloat y)
-        | x >= y    = LogFloat (x + log (1 - exp (y - x)))
+        | x >= y    = LogFloat (x + log1p (negate (exp (y - x))))
         | otherwise = errorOutOfRange "(-)"
     
     signum (LogFloat x)
@@ -369,7 +398,11 @@ instance Fractional LogFloat where
 -- Just for fun. The more coersion functions the better. Though
 -- Rationals are very buggy when it comes to transfinite values
 instance Real LogFloat where
-    toRational (LogFloat x) = toRational (exp x)
+    toRational (LogFloat x)
+        | isInfinite ex || isNaN ex = errorOutOfRange "toRational"
+        | otherwise                 = toRational ex
+        where
+        ex = exp x
 
 
 {- -- Commented out because I'm not sure about requiring MPTCs. Of course, those are already required by "Data.Number.Transfinite" so it's pretty moot...

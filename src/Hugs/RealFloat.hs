@@ -3,8 +3,15 @@
 
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
+#if defined(__HUGS__) && (__HUGS__ <= 200609)
+#define REALFLOAT_VERSION corrected Hugs version.
+#elif defined(__GLASGOW_HASKELL__) || defined(__NHC__)
+#define REALFLOAT_VERSION normal Prelude version. This should be correct.
+#else
+#define REALFLOAT_VERSION normal Prelude version. This could be buggy.
+#endif
 ----------------------------------------------------------------
---                                                  ~ 2009.01.29
+--                                                  ~ 2009.03.10
 -- |
 -- Module      :  Hugs.RealFloat
 -- Copyright   :  Copyright (c) 2007--2009 wren ng thornton
@@ -25,6 +32,8 @@
 -- N.B. The corrected definitions have only been tested to work for
 -- 'Float' and 'Double'. These definitions should probably not be
 -- used for other 'RealFloat' types.
+--
+-- /This installation was compiled with the REALFLOAT_VERSION/
 ----------------------------------------------------------------
 module Hugs.RealFloat
     ( isInfinite

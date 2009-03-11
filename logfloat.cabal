@@ -1,9 +1,9 @@
 ----------------------------------------------------------------
--- wren ng thornton <wren@community.haskell.org>    ~ 2009.03.09
+-- wren ng thornton <wren@community.haskell.org>    ~ 2009.03.10
 ----------------------------------------------------------------
 
 Name:           logfloat
-Version:        0.11.2
+Version:        0.12
 Cabal-Version:  >= 1.2
 Build-Type:     Simple
 Stability:      experimental
@@ -26,6 +26,11 @@ Flag splitBase
     Description: base-3.0 broke out array and other packages
     Default:     False
 
+Flag useFFI
+    Description: Use FFI to link C's log1p. Improves accuracy and
+                 same performance. Disable only if your compiler
+                 doesn't support FFI.
+    Default:     True
 
 Library
     Hs-Source-Dirs:  src
@@ -39,9 +44,13 @@ Library
     else
         Build-depends: base < 3.0
     
+    if flag(useFFI)
+        GHC-Options: -D__USE_FFI_FOR_LOG1P__
+        CPP-Options: -D__USE_FFI_FOR_LOG1P__
+    
     Hugs-Options: -98 +o -F'cpp -P -traditional -D__HUGS__=200609'
-    if impl(ghc < 6.10)
-        GHC-Options: -fno-warn-orphans
+    if impl(hugs)
+        CPP-Options: -D__HUGS__=200609
 
 ----------------------------------------------------------------
 ----------------------------------------------------------- fin.

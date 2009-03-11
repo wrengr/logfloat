@@ -1,9 +1,15 @@
+0.12 (2009-03-10):
+    - Added log1p.
+	- Added Storable instance (for GHC only)
+	- removed orphaned toRational/fromRational rules. The RealToFrac module obviates those optimizations.
+	- Adjusted Real LogFloat instance to throw errors on transfinite values
+
 0.11.2 (2009-03-09):
     - Moved log/exp rules from LogFloat into Transfinite
 0.11.1.1 (2009-03-09):
     - Documentation updates
 0.11.1 (2009-03-08):
-    - Added IArray UArray LogFloat instance.
+    - Added IArray UArray LogFloat instance (thanks to Felipe Lessa).
 0.11 (2009-01-29):
     - Broke Data.Number.RealToFrac out
 	- Cabal build fail due to missing new module (Fixed in 0.11.0.1).

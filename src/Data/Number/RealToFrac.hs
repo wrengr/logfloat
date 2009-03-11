@@ -97,10 +97,12 @@ instance RealToFrac Int Double where
 
 instance RealToFrac Integer Float where
     -- TODO: is there a more primitive way?
+    {-# INLINE realToFrac #-}
     realToFrac j = Prelude.realToFrac j
 
 instance RealToFrac Integer Double where
     -- TODO: is there a more primitive way?
+    {-# INLINE realToFrac #-}
     realToFrac j = Prelude.realToFrac j
 
 

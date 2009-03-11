@@ -1,13 +1,24 @@
-* Switch to using "<math.h> log1p" via FFI
-  - Figure out how to tell Cabal to tell hugs to run ffihugs
+== Portability ==
+* Cabal+Hugs
+  - how to tell to run ffihugs?
+  - how to do the right thing re __HUGS__, cpphs,...?
+* Foreign.Storable instance for Hugs
+* IArray UArray LogFloat instances for nhc98/yhc, jhc/lhc
 
-* Add a strict variant. Actually, I think the current version is as strict as it can be thanks to newtype data-constructors being strict. Should verify this (how?) and make sure things unpack into registers (how?)
 
+== Functionality ==
 * Add a signed variant
+
+
+== Debugging ==
+* Investigate bug about the (>=) in Hugs, re NaN and the Num LogFloat instance.
 
 * Add some unit tests for regression checking
   - but beware of the fuzz
-  - Make sure to test transfinite values everywhere in Hugs
+  - Make sure to test transfinite values everywhere in Hugs!
+
+* Verify that the current instance is entirely strict
+  - verify that things unpack into registers (how?)
 
 * Profile or look at Core to make sure we do not waste too much time constructing dictionaries. If so, reconsider the four smart constructors/destructors.
 
@@ -16,6 +27,3 @@
 -- http://www.haskell.org/ghc/docs/latest/html/users_guide/rewrite-rules.html
 -- http://www.randomhacks.net/articles/2007/02/10/map-fusion-and-haskell-performance
 -- {-# OPTIONS_GHC -ddump-rules -ddump-simpl-stats #-}
-
-* See about implementations of IArray UArray LogFloat for nhc98/yhc, jhc/lhc.
-  - Send update notice about the IArray instance, with thanks to Felipe Lessa (0.11.1)
