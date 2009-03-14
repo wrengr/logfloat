@@ -1,0 +1,61 @@
+GHC (6.8 and above)
+===================
+
+Installation under GHC is simple using the standard Cabal build
+loop (optional steps are in brackets):
+
+    runhaskell Setup.hs configure
+    runhaskell Setup.hs build
+    [runhaskell Setup.hs haddock [--hyperlink-source
+    runhaskell Setup.hs hscolour]]
+    runhaskell Setup.hs install
+
+If you run into issues about missing <math.h> or similar then see
+the FFI Problems section below.
+
+The logfloat package is no longer supported for GHC 6.6, though it
+could probably be made to work with it by changing LANGUAGE pragma
+into the appropriate OPTIONS_GHC equivalents. Since it's not supported
+anymore, more significant changes may have become necessary as well.
+
+
+Hugs (September 2006)
+=====================
+
+Installation under Hugs is unfortunately more complicated due to
+some issues in older versions of Cabal. You should be able to build
+things with these modifications to the usual Cabal build loop:
+
+    runhaskell Setup.hs configure --hugs \
+        --ffihugs-options="-98 +o" \
+        --ffihugs-option=-F'cpp -P -traditional -D__HUGS__=200609 -D__USE_FFI__'
+    runhaskell Setup.hs build
+    runhaskell Setup.hs install
+
+You may additionally need to pass the --with-cpphs=... flag to
+configure in order to tell it where cpphs (or cpphs-hugs) is on
+your system. Some additional details about difficulties with building
+for Hugs can be found in this blog post:
+
+    http://winterkoninkje.livejournal.com/60707.html
+
+If you run into issues about missing <math.h> or similar then see
+the FFI Problems section below.
+
+
+FFI Problems
+============
+
+The logfloat package uses the FFI to access functions in libm to
+improve accuracy. These functions are part of the ISO C 1999 standard
+and are supported on most systems, however they're not part of the
+ANSI C standard nor the System V standard and so they might be
+unavailable on some systems. If you encounter errors during build
+about not being able to find <math.h>, not having prototypes for
+functions, or linking errors, then you are probably on such a system.
+
+In order to use pure Haskell and disable the FFI, pass -f-useFFI
+during the configure phase to disable the useFFI flag. (If compiling
+for Hugs, also be sure *not* to pass -D__USE_FFI__ to the cpp filter
+for ffihugs.) This will degrade the accuracy of certain operations,
+but should still compile cleanly.

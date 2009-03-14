@@ -307,7 +307,7 @@ instance Show LogFloat where
 
 
 ----------------------------------------------------------------
-#ifdef __USE_FFI_FOR_LOG1P__
+#ifdef __USE_FFI__
 #define LOG1P_WHICH_VERSION specialized version.
 #else
 #define LOG1P_WHICH_VERSION naive version! \
@@ -322,7 +322,7 @@ instance Show LogFloat where
 --
 -- /This installation was compiled to use the LOG1P_WHICH_VERSION/
 
-#ifdef __USE_FFI_FOR_LOG1P__
+#ifdef __USE_FFI__
 foreign import ccall unsafe "math.h log1p"
     log1p :: Double -> Double
 
