@@ -8,10 +8,6 @@
 
 == Functionality ==
 * Add a signed variant
-* Do we have a use for expm1 == (subtract 1) . exp but accurate like log1p?
-  - Should we export it anyways?
-  - Portability? ISO C 1999 and XPG4-UNIX, but not ANSI C nor System V (just like log1p)
-  - Other useful functions from libm? e.g. gamma(-) for logarithm of factorial (also not ANSI C). If so, then move all to a separate module
 
 
 == Debugging ==

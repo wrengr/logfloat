@@ -60,8 +60,8 @@ module Data.Number.LogFloat
     , logToLogFloat
     , logFromLogFloat
     
-    -- * @log1p@
-    , log1p
+    -- * Accurate versions of logarithm\/exponentiation
+    , log1p, expm1
     ) where
 
 import Prelude hiding (log, realToFrac, isInfinite, isNaN)
@@ -336,6 +336,24 @@ foreign import ccall unsafe "math.h log1p"
 log1p :: Double -> Double
 {-# INLINE log1p #-}
 log1p x = log (1 + x)
+#endif
+
+
+-- | Definition: @expm1 == (subtract 1) . exp@. The C language
+-- provides a special definition for 'expm1' which is more accurate
+-- than doing the naive thing, especially for very small arguments.
+-- This function isn't needed internally, but is provided for
+-- symmetry with 'log1p'.
+--
+-- /This installation was compiled to use the LOG1P_WHICH_VERSION/
+
+#ifdef __USE_FFI__
+foreign import ccall unsafe "math.h expm1"
+    expm1 :: Double -> Double
+#else
+expm1 :: Double -> Double
+{-# INLINE expm1 #-}
+expm1 x = exp x - 1
 #endif
 
 ----------------------------------------------------------------
