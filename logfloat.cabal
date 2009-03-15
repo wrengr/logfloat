@@ -45,10 +45,12 @@ Library
         Build-depends: base < 3.0
     
     if flag(useFFI)
--- The ghc-options is needed by haddock-2.0.0.0
+-- BUG: The ghc-options is needed by Haddock under Cabal<1.6
         if impl(ghc < 6.10)
             GHC-Options: -D__USE_FFI__
         CPP-Options: -D__USE_FFI__
+        includes: math.h
+        extra-libraries: m
     
 -- BUG: These flags don't get handed off to ffihugs. and ffihugs-options doesn't exist in here. Now what?
     Hugs-Options: -98 +o
