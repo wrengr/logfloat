@@ -1,5 +1,5 @@
 ----------------------------------------------------------------
--- wren ng thornton <wren@community.haskell.org>    ~ 2009.03.10
+-- wren ng thornton <wren@community.haskell.org>    ~ 2009.03.17
 ----------------------------------------------------------------
 
 Name:           logfloat
@@ -45,17 +45,17 @@ Library
         Build-depends: base < 3.0
     
     if flag(useFFI)
--- BUG: The ghc-options is needed by Haddock under Cabal<1.6
-        if impl(ghc < 6.10)
-            GHC-Options: -D__USE_FFI__
+        -- BUG: (Cabal 1.2 + Haddock) See the INSTALL file.
+        --GHC-Options: -D__USE_FFI__
         CPP-Options: -D__USE_FFI__
         includes: math.h
         extra-libraries: m
     
--- BUG: These flags don't get handed off to ffihugs. and ffihugs-options doesn't exist in here. Now what?
+    -- BUG: (Cabal <= 1.6 + Hugs) See the INSTALL file.
     Hugs-Options: -98 +o
--- -F'cpp -P -traditional -D__HUGS__=200609'
     if impl(hugs)
+        -- BUG: (Cabal 1.2 + Haddock) See the INSTALL file.
+        --GHC-Options: -D__HUGS__=200609
         CPP-Options: -D__HUGS__=200609
 
 ----------------------------------------------------------------

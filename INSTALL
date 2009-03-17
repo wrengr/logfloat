@@ -1,17 +1,26 @@
-GHC (6.8 and above)
-===================
+logfloat-0.12
+=============
+
+In general, logfloat is a simple package and should be easy to
+install. The specifics are a bit murky however, since we use CPP
+and the FFI and want to retain portability, and due to the rapid
+evolution of Cabal and other development tools. This document will
+walk you through the ins and outs for all supported configurations.
+
+If you run into issues about missing <math.h> or similar, then see
+the FFI Problems section. If you want to compile Haddock documentation,
+then see that section.
+
+
+Building for GHC (6.8 and above)
+================================
 
 Installation under GHC is simple using the standard Cabal build
-loop (optional steps are in brackets):
+loop:
 
     runhaskell Setup.hs configure
     runhaskell Setup.hs build
-    [runhaskell Setup.hs haddock [--hyperlink-source
-    runhaskell Setup.hs hscolour]]
     runhaskell Setup.hs install
-
-If you run into issues about missing <math.h> or similar then see
-the FFI Problems section below.
 
 The logfloat package is no longer supported for GHC 6.6, though it
 could probably be made to work with it by changing LANGUAGE pragma
@@ -19,11 +28,11 @@ into the appropriate OPTIONS_GHC equivalents. Since it's not supported
 anymore, more significant changes may have become necessary as well.
 
 
-Hugs (September 2006)
-=====================
+Building for Hugs (September 2006)
+==================================
 
 Installation under Hugs is unfortunately more complicated due to
-some issues in older versions of Cabal. You should be able to build
+some option-passing bugs in Cabal. You should be able to build
 things with these modifications to the usual Cabal build loop:
 
     runhaskell Setup.hs configure --hugs \
@@ -32,15 +41,12 @@ things with these modifications to the usual Cabal build loop:
     runhaskell Setup.hs build
     runhaskell Setup.hs install
 
-You may additionally need to pass the --with-cpphs=... flag to
+You may additionally need to pass the --with-cpphs=... flag during
 configure in order to tell it where cpphs (or cpphs-hugs) is on
 your system. Some additional details about difficulties with building
 for Hugs can be found in this blog post:
 
     http://winterkoninkje.livejournal.com/60707.html
-
-If you run into issues about missing <math.h> or similar then see
-the FFI Problems section below.
 
 
 FFI Problems
@@ -59,3 +65,26 @@ during the configure phase to disable the useFFI flag. (If compiling
 for Hugs, also be sure *not* to pass -D__USE_FFI__ to the cpp filter
 for ffihugs.) This will degrade the accuracy of certain operations,
 but should still compile cleanly.
+
+
+Haddock Documentation
+=====================
+
+In Cabal 1.2 there is a bug in the handling of building Haddock
+documentation when CPP is involved. These issues have been fixed
+in Cabal 1.6, but here are the instructions if you're on older
+systems.
+
+In Cabal 1.2 the cpp-options field is not passed to Haddock, and
+therefore any macros defined there are not seen which can cause
+Haddock to fail. The old workaround was to define CPP macros in the
+ghc-options field which *does* get passed to Haddock. This is now
+considered bad style and is forbidden by Hackage. It appears that
+passing --haddock-option=... or --ghc-option=... flags during
+configure does not have the same effect as defining the field.
+
+Therefore, in order to properly compile Haddock documentation on
+Cabal 1.2, you should go into logfloat.cabal and uncomment the
+ghc-options fields which declare CPP macros -D__USE_FFI__ and
+-D__HUGS__=200609. If you know of a better workaround for this
+configuration, contact the maintainer.
