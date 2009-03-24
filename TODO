@@ -5,6 +5,19 @@
 * Foreign.Storable instance for Hugs
 * IArray UArray LogFloat instances for nhc98/yhc, jhc/lhc
 
+* BUG ghc6.10: Can't mix -fvia-C with the FFI.
+  <http://hackage.haskell.org/trac/ghc/ticket/3117>
+  .
+  2009.03.22 18:41:54#ghc: int-e ))) koninkje_away: it happens on Linux as well; the 
+                                     prototype that ghc generates for log1p is extern 
+                                     StgWordArray (log1p) __attribute__((aligned (8))); 
+                                     ...
+  2009.03.22 18:51:06#ghc: int-e ))) koninkje_away: the package builds for me after 
+                                     removing the -fvia-C from 
+                                     src/Data/Number/LogFloat.hs
+  * Switch to -fasm ?
+    * establish benchmarks
+
 
 == Functionality ==
 * Add a signed variant
