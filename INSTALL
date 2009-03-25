@@ -44,9 +44,11 @@ things with these modifications to the usual Cabal build loop:
 You may additionally need to pass the --with-cpphs=... flag during
 configure in order to tell it where cpphs (or cpphs-hugs) is on
 your system. Some additional details about difficulties with building
-for Hugs can be found in this blog post:
+for Hugs can be found in this blog post and the bug reports:
 
     http://winterkoninkje.livejournal.com/60707.html
+	http://hackage.haskell.org/trac/hackage/ticket/526
+	http://hackage.haskell.org/trac/hackage/ticket/527
 
 
 FFI Problems
@@ -65,6 +67,14 @@ during the configure phase to disable the useFFI flag. (If compiling
 for Hugs, also be sure *not* to pass -D__USE_FFI__ to the cpp filter
 for ffihugs.) This will degrade the accuracy of certain operations,
 but should still compile cleanly.
+
+If you run into errors like "error: 'log1p' redeclared as different
+kind of symbol" this is due to a bug in GHC 6.10.1 where you can't
+use both -fvia-C and the FFI. This bug should be circumvented for
+the moment, but resolving it is still a work in progress. See the
+bug report:
+
+    http://hackage.haskell.org/trac/ghc/ticket/3117
 
 
 Haddock Documentation

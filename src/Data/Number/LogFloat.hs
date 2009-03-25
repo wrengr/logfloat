@@ -15,7 +15,15 @@
 -- doesn't do what you want.
 -- cf <http://hackage.haskell.org/trac/ghc/ticket/2213>
 -- cf <http://www.mail-archive.com/glasgow-haskell-users@haskell.org/msg14313.html>
-{-# OPTIONS_GHC -O2 -fvia-C -optc-O3 -fexcess-precision -fglasgow-exts #-}
+{-# OPTIONS_GHC -O2 -fexcess-precision -fglasgow-exts #-}
+
+-- BUG: Can't mix FFI and -fvia-C under GHC 6.10.1
+-- <http://hackage.haskell.org/trac/ghc/ticket/3117>
+-- TODO: see if -fasm gives the same performance boost
+-- TODO: figure out how to get these flags parsed.
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ < 610
+{-# OPTIONS_GHC -fvia-C -optc-O3 #-}
+#endif
 
 ----------------------------------------------------------------
 --                                                  ~ 2009.03.10
