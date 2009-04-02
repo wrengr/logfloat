@@ -1,3 +1,5 @@
+0.12.0.1 (2009-03-25):
+    - Disabled -fvia-C so the FFI can be used in GHC 6.10
 0.12 (2009-03-10):
     - Added log1p.
 	- Added Storable instance (for GHC only)
