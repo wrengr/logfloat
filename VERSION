@@ -1,3 +1,5 @@
+0.12.0.2 (2009-04-03):
+    - Updated TODO and VERSION
 0.12.0.1 (2009-03-25):
     - Disabled -fvia-C so the FFI can be used in GHC 6.10
 0.12 (2009-03-10):
@@ -13,12 +15,14 @@
 0.11.1 (2009-03-08):
     - Added IArray UArray LogFloat instance (thanks to Felipe Lessa).
 0.11 (2009-01-29):
-    - Broke Data.Number.RealToFrac out
+    - Moved the RealToFrac class from Data.Number.Transfinite to Data.Number.RealToFrac. This breaks backwards compatibility if you depended directly on that module for the class. If you imported the class from Data.Number.LogFloat then you're still fine.
 	- Cabal build fail due to missing new module (Fixed in 0.11.0.1).
 
 0.10 (2009-01-29):
-    - Fixed bugs in Hugs for PartialOrd and Transfinite.
-    - Also added maxPO, minPO, comparingPO
+	- Hugs' Prelude definitions of isInfinite and isNaN for Float and Double are buggy. The new Hugs.RealFloat module provides correct implementations (defaulting to the Prelude definition for non-Hugs compilers).
+    - The PartialOrd and Transfinite instances for Double and Float have been updated to use these corrected functions.
+    -  Added maxPO and minPO to PartialOrd and added comparingPO to Data.Number.PartialOrd.
+    - Minor changes to circumvent bugs in Hackage's new version of Haddock. You should be able to see all the documentation now.
 
 0.9.1 (2008-08-30):
     - Fixed some PartialOrd stuff and sanitized documentation
