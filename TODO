@@ -18,6 +18,8 @@
   * Switch to -fasm ?
     * establish benchmarks
 
+* Ask Windows users about ccall vs stdcall issues?
+
 
 == Functionality ==
 * Add a signed variant
