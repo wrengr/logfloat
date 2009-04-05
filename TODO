@@ -1,14 +1,16 @@
 == Portability ==
 * Cabal+Hugs: how to do the right thing re __HUGS__, cpphs,...?
-* Foreign.Storable instance for Hugs (and nhc98/yhc, jhc/lhc)
-* IArray UArray LogFloat instances for nhc98/yhc, jhc/lhc
 
-* BUG ghc6.10: Cannot mix -fvia-C with the FFI.
+* BUG ghc6.10.1: Cannot mix -fvia-C with the FFI.
   <http://hackage.haskell.org/trac/ghc/ticket/3117>
+  (fixed in ghc6.10.2)
   * Switch to -fasm ?
     * establish benchmarks
 
-* Ask Windows users about ccall vs stdcall issues?
+* Windows+ghci issues with FFI(ccall vs stdcall??). ghc itself is fine.
+
+* Foreign.Storable instance for Hugs (and nhc98/yhc, jhc/lhc)
+* IArray UArray LogFloat instances for nhc98/yhc, jhc/lhc
 
 
 == Functionality ==

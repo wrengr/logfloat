@@ -35,15 +35,19 @@ Installation under Hugs is unfortunately more complicated due to
 some option-passing bugs in Cabal. You should be able to build
 things with these modifications to the usual Cabal build loop:
 
-    runhaskell Setup.hs configure --hugs \
-        --ffihugs-options="-98 +o" \
+    runhaskell Setup.hs configure --hugs  \
+        --with-cpphs="`which cpphs-hugs`" \
+        --ffihugs-options="-98 +o"        \
         --ffihugs-option=-F'cpp -P -traditional -D__HUGS__=200609 -D__USE_FFI__'
     runhaskell Setup.hs build
     runhaskell Setup.hs install
 
-You may additionally need to pass the --with-cpphs=... flag during
-configure in order to tell it where cpphs (or cpphs-hugs) is on
-your system. Some additional details about difficulties with building
+Hugs installs cpphs under the name "cpphs-hugs" by default. The
+`which` command will try to resolve the location, assuming it's on
+your $PATH. If it isn't, then change the --with-cpphs= flag to point
+to where cpphs is installed on your system.
+
+Some additional details about difficulties with building
 for Hugs can be found in this blog post and the bug reports:
 
     http://winterkoninkje.livejournal.com/60707.html
@@ -72,9 +76,22 @@ If you run into errors like "error: 'log1p' redeclared as different
 kind of symbol" this is due to a bug in GHC 6.10.1 where you can't
 use both -fvia-C and the FFI. This bug should be circumvented for
 the moment, but resolving it is still a work in progress. See the
-bug report:
+bug report (which is resolved in GHC 6.10.2):
 
     http://hackage.haskell.org/trac/ghc/ticket/3117
+
+
+Windows FFI
+===========
+
+The logfloat package builds and installs cleanly on Windows XP using
+GHC 6.10.1 (without needing Cygwin nor Mingw/Msys). The C functions
+reside in libmingwex.a which is bundled with GHC on WinXP.
+
+However, it does not work from the GHCi debugger and gives errors
+like "can't load .so/.DLL for: m (addDLL: could not load DLL)". If
+you know how to fix this issue or have further details on Windows
+compatability, please contact the maintainer.
 
 
 Haddock Documentation
@@ -86,7 +103,7 @@ in Cabal 1.6, but here are the instructions if you're on older
 systems.
 
 In Cabal 1.2 the cpp-options field is not passed to Haddock, and
-therefore any macros defined there are not seen which can cause
+therefore any macros defined there are not seen, which can cause
 Haddock to fail. The old workaround was to define CPP macros in the
 ghc-options field which *does* get passed to Haddock. This is now
 considered bad style and is forbidden by Hackage. It appears that
