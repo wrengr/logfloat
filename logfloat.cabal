@@ -1,5 +1,5 @@
 ----------------------------------------------------------------
--- wren ng thornton <wren@community.haskell.org>    ~ 2009.03.17
+-- wren ng thornton <wren@community.haskell.org>    ~ 2009.09.19
 ----------------------------------------------------------------
 
 Name:           logfloat
@@ -13,7 +13,7 @@ License-File:   LICENSE
 Author:         wren ng thornton
 Maintainer:     wren@community.haskell.org
 Homepage:       http://code.haskell.org/~wren/
-Category:       Data, Math, Natural Language Processing
+Category:       Data, Math, Natural Language Processing, Statistics
 Synopsis:       Log-domain floating point numbers
 Description:    This module presents a type for storing numbers
                 in the log-domain. The main reason for doing this

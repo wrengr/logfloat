@@ -12,6 +12,8 @@
 * Foreign.Storable instance for Hugs (and nhc98/yhc, jhc/lhc)
 * IArray UArray LogFloat instances for nhc98/yhc, jhc/lhc
 
+* If the cmath package ever adds log1p/expm1 then consider depending on it instead of rolling our own?
+
 
 == Functionality ==
 * Add a signed variant
