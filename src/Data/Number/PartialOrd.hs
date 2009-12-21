@@ -13,7 +13,7 @@
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
 -- Stability   :  experimental
--- Portability :  semi-portable (overlapping instances, etc)
+-- Portability :  semi-portable (OverlappingInstances,...)
 -- 
 -- The Prelude's 'Ord' class for dealing with ordered types is often
 -- onerous to use because it requires 'Eq' as well as a total

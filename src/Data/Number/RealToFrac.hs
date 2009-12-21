@@ -18,7 +18,7 @@
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
 -- Stability   :  experimental
--- Portability :  non-portable (CPP, MPTC, OverlappingInstances)
+-- Portability :  semi-portable (CPP, MPTC, OverlappingInstances)
 -- 
 -- This module presents a type class for generic conversion between
 -- numeric types, generalizing @realToFrac@ in order to overcome
