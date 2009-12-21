@@ -1,0 +1,20 @@
+\begin{hcarentry}[new]{logfloat}
+\report{Wren N.G. Thornton}%05/09
+\status{stable?}
+\release{0.12.0.1}
+\portability{GHC 6.8, GHC 6.10, Hugs Sept2006}
+\makeheader
+
+The logfloat library provides a type for storing numbers in the log-domain. This is primarily useful for avoiding underflow when multiplying many small numbers in probabilistic models.
+
+It also includes support for dealing with IEEE-754 floating point numbers (more) correctly, including: a class for types with representations for transfinite values, a class for partially ordered types, efficient and correct conversion from \texttt{Real} to \texttt{Fractional}, and bug fixes for Hugs' Prelude.
+
+\FuturePlans
+Add a signed variant so negative numbers can also be projected into the log-domain.
+
+\FurtherReading
+\begin{compactitem}
+\item Official source and documentation available on Hackage
+\item The development branch is available from \url{http://community.haskell.org/~wren/}
+\end{compactitem}
+\end{hcarentry}
