@@ -11,10 +11,10 @@
 #define REALFLOAT_VERSION normal Prelude version. This could be buggy.
 #endif
 ----------------------------------------------------------------
---                                                  ~ 2009.03.10
+--                                                  ~ 2010.03.19
 -- |
 -- Module      :  Hugs.RealFloat
--- Copyright   :  Copyright (c) 2007--2009 wren ng thornton
+-- Copyright   :  Copyright (c) 2007--2010 wren ng thornton
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
 -- Stability   :  stable
@@ -46,6 +46,7 @@ import qualified Prelude
 
 isInfinite  :: (RealFloat a) => a -> Bool
 {-# SPECIALIZE isInfinite :: Double -> Bool #-}
+{-# SPECIALIZE isInfinite :: Float  -> Bool #-}
 {-# INLINE isInfinite #-}
 #if defined(__HUGS__) && (__HUGS__ <= 200609)
 isInfinite x = (1/0) == abs x
@@ -56,6 +57,7 @@ isInfinite = Prelude.isInfinite
 
 isNaN :: (RealFloat a) => a -> Bool
 {-# SPECIALIZE isNaN :: Double -> Bool #-}
+{-# SPECIALIZE isNaN :: Float  -> Bool #-}
 {-# INLINE isNaN #-}
 #if defined(__HUGS__) && (__HUGS__ <= 200609)
 isNaN x = compareEQ x 0 && compareEQ x 1
