@@ -1,7 +1,10 @@
-
 -- FlexibleContexts needed by our RealToFrac contexts
 -- CPP needed for IArray UArray instance
 -- FFI is for log1p
+--     N.B. can't mix FFI and -fvia-C under ghc==6.10.1
+--     <http://hackage.haskell.org/trac/ghc/ticket/3117>
+--     TODO: figure out how to conditionally use "-fvia-C -optc-O3"
+--     for ghc6.8 when not using Cabal to compile.
 {-# LANGUAGE FlexibleContexts
            , CPP
            , ForeignFunctionInterface
@@ -17,16 +20,8 @@
 -- cf <http://www.mail-archive.com/glasgow-haskell-users@haskell.org/msg14313.html>
 {-# OPTIONS_GHC -O2 -fexcess-precision -fglasgow-exts #-}
 
--- BUG: Can't mix FFI and -fvia-C under GHC 6.10.1
--- <http://hackage.haskell.org/trac/ghc/ticket/3117>
--- TODO: see if -fasm gives the same performance boost
--- TODO: figure out how to get these flags parsed.
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ < 610
-{-# OPTIONS_GHC -fvia-C -optc-O3 #-}
-#endif
-
 ----------------------------------------------------------------
---                                                  ~ 2009.03.10
+--                                                  ~ 2010.03.19
 -- |
 -- Module      :  Data.Number.LogFloat
 -- Copyright   :  Copyright (c) 2007--2010 wren ng thornton
@@ -48,9 +43,8 @@
 -- are frequently done within a /O(n^3)/ loop.
 --
 -- The 'LogFloat' of this module is restricted to non-negative
--- numbers for efficiency's sake, see the forthcoming
--- "Data.Number.LogFloat.Signed" for doing signed log-domain
--- calculations. (Or harass the maintainer to write it already.)
+-- numbers for efficiency's sake, see "Data.Number.LogFloat.Signed"
+-- for doing signed log-domain calculations.
 ----------------------------------------------------------------
 
 module Data.Number.LogFloat
@@ -160,13 +154,15 @@ logFromLFAssocs = unsafeCoerce
 logFromLFUArray :: UArray a LogFloat -> UArray a Double
 logFromLFUArray = unsafeCoerce
 
-{-# INLINE logToLFUArray #-}
-logToLFUArray   :: UArray a Double -> UArray a LogFloat
-logToLFUArray   = unsafeCoerce
+-- Named unsafe because it could allow injecting NaN if misused
+{-# INLINE unsafeLogToLFUArray #-}
+unsafeLogToLFUArray :: UArray a Double -> UArray a LogFloat
+unsafeLogToLFUArray = unsafeCoerce
 
-{-# INLINE logToLFFunc #-}
-logToLFFunc :: (LogFloat -> a -> LogFloat) -> (Double -> a -> Double)
-logToLFFunc = ($. unsafeLogToLogFloat ~> id ~> logFromLogFloat)
+-- Named unsafe because it could allow injecting NaN if misused
+{-# INLINE unsafeLogToLFFunc #-}
+unsafeLogToLFFunc :: (LogFloat -> a -> LogFloat) -> (Double -> a -> Double)
+unsafeLogToLFFunc = ($. unsafeLogToLogFloat ~> id ~> logFromLogFloat)
 
 -- | Remove the extranious 'isNaN' test of 'logToLogFloat', when
 -- we know it's safe.
@@ -188,7 +184,7 @@ instance IArray UArray LogFloat where
     
     {-# INLINE unsafeArray #-}
     unsafeArray =
-        unsafeArray $. id ~> logFromLFAssocs ~> logToLFUArray
+        unsafeArray $. id ~> logFromLFAssocs ~> unsafeLogToLFUArray
     
     {-# INLINE unsafeAt #-}
     unsafeAt =
@@ -196,18 +192,20 @@ instance IArray UArray LogFloat where
     
     {-# INLINE unsafeReplace #-}
     unsafeReplace =
-        unsafeReplace $. logFromLFUArray ~> logFromLFAssocs ~> logToLFUArray
+        unsafeReplace $. logFromLFUArray ~> logFromLFAssocs ~> unsafeLogToLFUArray
     
     {-# INLINE unsafeAccum #-}
     unsafeAccum =
-        unsafeAccum $. logToLFFunc ~> logFromLFUArray ~> id ~> logToLFUArray
+        unsafeAccum $. unsafeLogToLFFunc ~> logFromLFUArray ~> id ~> unsafeLogToLFUArray
     
     {-# INLINE unsafeAccumArray #-}
     unsafeAccumArray =
-        unsafeAccumArray $. logToLFFunc ~> logFromLogFloat ~> id ~> id ~> logToLFUArray
+        unsafeAccumArray $. unsafeLogToLFFunc ~> logFromLogFloat ~> id ~> id ~> unsafeLogToLFUArray
 #endif
 
-
+-- TODO: the Nothing branch should never be reachable. Once we get
+-- a test suite up and going to *verify* the never-NaN invariant,
+-- we should be able to eliminate the branch and the isNaN checks.
 instance PartialOrd LogFloat where
     cmp (LogFloat x) (LogFloat y) 
         | isNaN x || isNaN y = Nothing
@@ -216,23 +214,20 @@ instance PartialOrd LogFloat where
 
 ----------------------------------------------------------------
 -- | Reduce the number of constant string literals we need to store.
-errorOutOfRange    :: String -> a
+errorOutOfRange :: String -> a
 {-# NOINLINE errorOutOfRange #-}
 errorOutOfRange fun = error $! "Data.Number.LogFloat."++fun
                             ++ ": argument out of range"
 
+-- Both guards are redundant due to the subsequent call to
+-- 'Data.Number.Transfinite.log' at all use sites. However we use
+-- this function to give local error messages. Perhaps we should
+-- catch the exception and throw the new message instead? Portability?
 
--- | We need these guards in order to ensure some invariants.
 guardNonNegative      :: String -> Double -> Double
-guardNonNegative fun x | x >= 0    = x
-                       | otherwise = errorOutOfRange fun
+guardNonNegative fun x | isNaN x || x < 0 = errorOutOfRange fun
+                       | otherwise        = x
 
-
--- | In general @log . guardNonNegative fun == guardIsANumber fun . log@
--- This even holds on Hugs now. However, the latter issues an error
--- from 'Data.Number.Transfinite.log' whereas the former issues an
--- error from the calling function and is therefore more helpful
--- for debugging.
 guardIsANumber        :: String -> Double -> Double
 guardIsANumber   fun x | isNaN x   = errorOutOfRange fun
                        | otherwise = x
@@ -315,12 +310,19 @@ instance Show LogFloat where
 
 
 ----------------------------------------------------------------
+-- Technically these should use 'Foreign.C.CDouble' however there's
+-- no isomorphism provided to normal 'Double'. The former is
+-- documented as being a newtype of the later, and so this should
+-- be safe.
+
 #ifdef __USE_FFI__
 #define LOG1P_WHICH_VERSION specialized version.
 #else
 #define LOG1P_WHICH_VERSION naive version! \
     Contact the maintainer with any FFI difficulties.
 #endif
+
+
 -- | Definition: @log1p == log . (1+)@. The C language provides a
 -- special definition for 'log1p' which is more accurate than doing
 -- the naive thing, especially for very small arguments. For example,
@@ -333,14 +335,7 @@ instance Show LogFloat where
 #ifdef __USE_FFI__
 foreign import ccall unsafe "math.h log1p"
     log1p :: Double -> Double
-
--- Technically we should use 'Foreign.C.CDouble' however there's
--- no isomorphism provided to normal 'Double'. The former is
--- documented as being a newtype of the later, and so this should
--- be safe.
-
 #else
-
 log1p :: Double -> Double
 {-# INLINE log1p #-}
 log1p x = log (1 + x)
@@ -374,24 +369,26 @@ expm1 x = exp x - 1
 -- +\/- 4e-16.
 
 instance Num LogFloat where 
-    -- BUG? In Hugs (Sept2006) the (>=) always returns True if
-    --      either isNaN. Only questionably a bug, since we try to
-    --      ensure that notANumber never occurs. Still... perhaps
-    --      we should use `ge` and other PartialOrd things in order
-    --      to play it safe.
-    -- TODO: benchmark and check core to see how much that hurts GHC.
+    -- N.B. In Hugs (Sept2006) the (>=) always returns True if
+    --      either isNaN. This does not constitute a bug since we
+    --      maintain the invariant that values wrapped by 'LogFloat'
+    --      are not NaN.
     
+    -- Without the guard this could introduce NaN if (x,y) or (y,x)
+    -- is (infinity,negativeInfinity) from, e.g.,
+    -- @logFloat 0 * logFloat infinity@
+    (*) (LogFloat x) (LogFloat y)
+        = LogFloat (guardIsANumber "(*)" (x+y))
     
-    (*) (LogFloat x) (LogFloat y) = LogFloat (x+y)
-    
+    -- Could only become NaN if (x,y) or (y,x) is (infinity,NaN)
     (+) (LogFloat x) (LogFloat y)
         | x >= y    = LogFloat (x + log1p (exp (y - x)))
         | otherwise = LogFloat (y + log1p (exp (x - y)))
     
-    -- Without the guard this would return NaN instead of error
+    -- If x < y or if (x,y) is (infinity,infinity) then without the
+    -- guard we'd get NaN.
     (-) (LogFloat x) (LogFloat y)
-        | x >= y    = LogFloat (x + log1p (negate (exp (y - x))))
-        | otherwise = errorOutOfRange "(-)"
+        = LogFloat (guardIsANumber "(-)" (x + log1p (negate (exp (y - x)))))
     
     signum (LogFloat x)
         | x == negativeInfinity = 0
@@ -401,21 +398,21 @@ instance Num LogFloat where
         -- broke the invariant. That shouldn't be possible and
         -- so noone else bothers to check, but we check here just
         -- in case.
-
+    
     negate _    = errorOutOfRange "negate"
-
+    
     abs         = id
-
+    
     fromInteger = LogFloat . log
                 . guardNonNegative "fromInteger" . fromInteger
 
 
 instance Fractional LogFloat where
-    -- n/0 is handled seamlessly for us; we must catch 0/0 though
+    -- Normal-domain n/0 == infinity is handled seamlessly for us.
+    -- We must catch normal-domain 0/0 and inf/inf NaNs however.
     (/) (LogFloat x) (LogFloat y)
-        |    x == negativeInfinity
-          && y == negativeInfinity = errorOutOfRange "(/)" -- protect vs NaN
-        | otherwise                = LogFloat (x-y)
+        | isInfinite x && isInfinite y = errorOutOfRange "(/)"
+        | otherwise                    = LogFloat (x-y)
     
     fromRational = LogFloat . log
                  . guardNonNegative "fromRational" . fromRational

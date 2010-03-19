@@ -1,28 +1,32 @@
 == Portability ==
 * Cabal+Hugs: how to do the right thing re __HUGS__, cpphs,...?
 
-* BUG ghc6.10.1 (not 6.8; fixed in 6.10.2): Cannot mix -fvia-C with the FFI.
+* BUG ghc6.10.1 (not in 6.8; fixed in 6.10.2): Cannot mix -fvia-C with the FFI.
   <http://hackage.haskell.org/trac/ghc/ticket/3117>
-  * Switch to -fasm or -fllvm? We should do some benchmarking
+  * Switch to -fasm for 6.10.1?
+  * Do benchmarking for whether we should use -fasm, -fllvm, etc for ghc6.12
 
 * Windows+ghci issues with FFI(ccall vs stdcall??). ghc itself is fine.
 
-* Foreign.Storable instance for Hugs (and nhc98/yhc, jhc/lhc)
-* IArray UArray LogFloat instances for nhc98/yhc, jhc/lhc
+* instance Storable LogFloat      for Hugs (and nhc98/yhc, jhc/lhc)
+* instance IArray UArray Logfloat for nhc98/yhc, jhc/lhc
+* check whether IArray.numElements method exists in nhc98/yhc, jhc/lhc
+
+* check the inlining behavior of the four LogFloat cons/destrucors (see the note in LogFloat.hs)
 
 * If the cmath package ever adds log1p/expm1 then consider depending on it instead of rolling our own?
 
-- Looks like Fink's hugs-1998.200102-1017 package doesn't have ffihugs. Need to bug the maintainer.
+* Fink's latest Hugs (1998.200102-1017) package doesn't have ffihugs. It's also Feb2001 which is five years older than the latest (4-years-old) release! Need to bug the maintainer. Of course Feb2001 doesn't support hierarchical module names either, so the ffi is the least of our worries.
 
 
 == Functionality ==
 * Add a signed variant
 * Add "safe" FFI version for multithreaded users?
-  * Find out if it actually affects performance.
+  * Find out if it actually affects performance. It'd only apply to uses of (+) and (-) which are already horribly slow...
 
 
 == Debugging ==
-* Investigate bug about the (>=) in Hugs, re NaN and the Num LogFloat instance. (What bug was that?)
+* The Nothing branch in the PartialOrd LogFloat instance should be unreachable. Once we get a test suite up and going to *verify* the never-NaN invariant, we should be able to eliminate the branch and the isNaN checks.
 
 * Add some unit tests for regression checking
   - but beware of the fuzz
