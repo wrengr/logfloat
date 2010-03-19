@@ -14,7 +14,7 @@
 -- Copyright   :  Copyright (c) 2007--2010 wren ng thornton
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
--- Stability   :  experimental
+-- Stability   :  stable
 -- Portability :  portable
 -- 
 -- This module presents a type class for numbers which have

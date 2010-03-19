@@ -12,7 +12,7 @@
 -- Copyright   :  Copyright (c) 2007--2010 wren ng thornton
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
--- Stability   :  experimental
+-- Stability   :  stable
 -- Portability :  semi-portable (OverlappingInstances,...)
 -- 
 -- The Prelude's 'Ord' class for dealing with ordered types is often

@@ -17,7 +17,7 @@
 -- Copyright   :  Copyright (c) 2007--2010 wren ng thornton
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
--- Stability   :  experimental
+-- Stability   :  stable
 -- Portability :  semi-portable (CPP, MPTC, OverlappingInstances)
 -- 
 -- This module presents a type class for generic conversion between

@@ -1,11 +1,9 @@
 == Portability ==
 * Cabal+Hugs: how to do the right thing re __HUGS__, cpphs,...?
 
-* BUG ghc6.10.1: Cannot mix -fvia-C with the FFI.
+* BUG ghc6.10.1 (not 6.8; fixed in 6.10.2): Cannot mix -fvia-C with the FFI.
   <http://hackage.haskell.org/trac/ghc/ticket/3117>
-  (fixed in ghc6.10.2)
-  * Switch to -fasm ?
-    * establish benchmarks
+  * Switch to -fasm or -fllvm? We should do some benchmarking
 
 * Windows+ghci issues with FFI(ccall vs stdcall??). ghc itself is fine.
 
@@ -13,6 +11,8 @@
 * IArray UArray LogFloat instances for nhc98/yhc, jhc/lhc
 
 * If the cmath package ever adds log1p/expm1 then consider depending on it instead of rolling our own?
+
+- Looks like Fink's hugs-1998.200102-1017 package doesn't have ffihugs. Need to bug the maintainer.
 
 
 == Functionality ==
@@ -22,7 +22,7 @@
 
 
 == Debugging ==
-* Investigate bug about the (>=) in Hugs, re NaN and the Num LogFloat instance.
+* Investigate bug about the (>=) in Hugs, re NaN and the Num LogFloat instance. (What bug was that?)
 
 * Add some unit tests for regression checking
   - but beware of the fuzz
