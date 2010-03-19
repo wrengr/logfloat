@@ -380,10 +380,14 @@ instance Num LogFloat where
     (*) (LogFloat x) (LogFloat y)
         = LogFloat (guardIsANumber "(*)" (x+y))
     
-    -- Could only become NaN if (x,y) or (y,x) is (infinity,NaN)
+    -- Could become NaN if (x,y) is (infinity,infinity) or 
+    -- (negativeInfinity,negativeInfinity)
     (+) (LogFloat x) (LogFloat y)
-        | x >= y    = LogFloat (x + log1p (exp (y - x)))
-        | otherwise = LogFloat (y + log1p (exp (x - y)))
+        | x == y
+          && isInfinite x
+          && isInfinite y = LogFloat negativeInfinity -- @0+0 == 0@
+        | x >= y          = LogFloat (x + log1p (exp (y - x)))
+        | otherwise       = LogFloat (y + log1p (exp (x - y)))
     
     -- Could become Nan if x < y or if (x,y) is (infinity,infinity) or 
     -- (negativeInfinity,negativeInfinity)
