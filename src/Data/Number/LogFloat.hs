@@ -385,10 +385,13 @@ instance Num LogFloat where
         | x >= y    = LogFloat (x + log1p (exp (y - x)))
         | otherwise = LogFloat (y + log1p (exp (x - y)))
     
-    -- If x < y or if (x,y) is (infinity,infinity) then without the
-    -- guard we'd get NaN.
+    -- Could become Nan if x < y or if (x,y) is (infinity,infinity) or 
+    -- (negativeInfinity,negativeInfinity)
     (-) (LogFloat x) (LogFloat y)
-        = LogFloat (guardIsANumber "(-)" (x + log1p (negate (exp (y - x)))))
+        |    x == negativeInfinity
+          && y == negativeInfinity = LogFloat negativeInfinity -- @0-0 == 0@
+        | otherwise =
+            LogFloat (guardIsANumber "(-)" (x + log1p (negate (exp (y - x)))))
     
     signum (LogFloat x)
         | x == negativeInfinity = 0
