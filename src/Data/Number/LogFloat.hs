@@ -374,27 +374,24 @@ instance Num LogFloat where
     --      maintain the invariant that values wrapped by 'LogFloat'
     --      are not NaN.
     
-    -- Without the guard this could introduce NaN if (x,y) or (y,x)
-    -- is (infinity,negativeInfinity) from, e.g.,
-    -- @logFloat 0 * logFloat infinity@
     (*) (LogFloat x) (LogFloat y)
-        = LogFloat (guardIsANumber "(*)" (x+y))
+        |    isInfinite x
+          && isInfinite y
+          && x == negate y = LogFloat negativeInfinity -- @0*infinity == 0@
+        | otherwise        = LogFloat (x+y)
     
-    -- Could become NaN if (x,y) is (infinity,infinity) or 
-    -- (negativeInfinity,negativeInfinity)
     (+) (LogFloat x) (LogFloat y)
         | x == y
           && isInfinite x
-          && isInfinite y = LogFloat negativeInfinity -- @0+0 == 0@
+          && isInfinite y = LogFloat x -- @0+0 == 0@, @infinity+infinity == infinity@
         | x >= y          = LogFloat (x + log1p (exp (y - x)))
         | otherwise       = LogFloat (y + log1p (exp (x - y)))
     
-    -- Could become Nan if x < y or if (x,y) is (infinity,infinity) or 
-    -- (negativeInfinity,negativeInfinity)
     (-) (LogFloat x) (LogFloat y)
         |    x == negativeInfinity
           && y == negativeInfinity = LogFloat negativeInfinity -- @0-0 == 0@
         | otherwise =
+            -- Will throw error if x < y or if (x,y) is (infinity,infinity)
             LogFloat (guardIsANumber "(-)" (x + log1p (negate (exp (y - x)))))
     
     signum (LogFloat x)
@@ -415,11 +412,13 @@ instance Num LogFloat where
 
 
 instance Fractional LogFloat where
-    -- Normal-domain n/0 == infinity is handled seamlessly for us.
-    -- We must catch normal-domain 0/0 and inf/inf NaNs however.
+    -- n/0 == infinity is handled seamlessly for us. We must catch 0/0 and infinity/infinity NaNs, and handle 0/infinity.
     (/) (LogFloat x) (LogFloat y)
-        | isInfinite x && isInfinite y = errorOutOfRange "(/)"
-        | otherwise                    = LogFloat (x-y)
+        | x == y
+          && isInfinite x
+          && isInfinite y       = errorOutOfRange "(/)"
+        | x == negativeInfinity = LogFloat negativeInfinity -- @0/infinity == 0@
+        | otherwise             = LogFloat (x-y)
     
     fromRational = LogFloat . log
                  . guardNonNegative "fromRational" . fromRational
