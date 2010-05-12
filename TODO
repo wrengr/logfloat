@@ -24,6 +24,8 @@
 * Add "safe" FFI version for multithreaded users?
   * Find out if it actually affects performance. It'd only apply to uses of (+) and (-) which are already horribly slow...
 
+* (?)Rename "Transfinite" to "Limited" in order to make it clearer that we're not dealing with infinite ordinals nor cardinals. Our infinities are limits on the underlying order.
+
 
 == Debugging ==
 * The Nothing branch in the PartialOrd LogFloat instance should be unreachable. Once we get a test suite up and going to *verify* the never-NaN invariant, we should be able to eliminate the branch and the isNaN checks.
