@@ -163,7 +163,7 @@ instance Transfinite Float where
 -- This function will raise an error when taking the log of negative
 -- numbers, rather than returning 'notANumber' as the newer GHC
 -- implementation does. The reason being that typically this is a
--- logical error, and @notANumber@ allows the error to propegate
+-- logical error, and @notANumber@ allows the error to propagate
 -- silently.
 --
 -- In order to improve portability, the 'Transfinite' class is

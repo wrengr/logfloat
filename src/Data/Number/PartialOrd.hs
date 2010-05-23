@@ -18,7 +18,7 @@
 -- The Prelude's 'Ord' class for dealing with ordered types is often
 -- onerous to use because it requires 'Eq' as well as a total
 -- ordering. While such total orderings are common, partial orderings
--- are moreso. This module presents a class for partially ordered
+-- are more so. This module presents a class for partially ordered
 -- types.
 ----------------------------------------------------------------
 module Data.Number.PartialOrd

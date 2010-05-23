@@ -164,7 +164,7 @@ unsafeLogToLFUArray = unsafeCoerce
 unsafeLogToLFFunc :: (LogFloat -> a -> LogFloat) -> (Double -> a -> Double)
 unsafeLogToLFFunc = ($. unsafeLogToLogFloat ~> id ~> logFromLogFloat)
 
--- | Remove the extranious 'isNaN' test of 'logToLogFloat', when
+-- | Remove the extraneous 'isNaN' test of 'logToLogFloat', when
 -- we know it's safe.
 {-# INLINE unsafeLogToLogFloat #-}
 unsafeLogToLogFloat :: Double -> LogFloat
@@ -424,7 +424,7 @@ instance Fractional LogFloat where
                  . guardNonNegative "fromRational" . fromRational
 
 
--- Just for fun. The more coersion functions the better. Though
+-- Just for fun. The more coercion functions the better. Though
 -- Rationals are very buggy when it comes to transfinite values
 instance Real LogFloat where
     toRational (LogFloat x)
