@@ -1,9 +1,9 @@
 ----------------------------------------------------------------
--- wren ng thornton <wren@community.haskell.org>    ~ 2010.03.19
+-- wren ng thornton <wren@community.haskell.org>    ~ 2010.06.10
 ----------------------------------------------------------------
 
 Name:           logfloat
-Version:        0.12.1
+Version:        0.12.1.1
 Cabal-Version:  >= 1.2
 Build-Type:     Simple
 Stability:      experimental
@@ -21,6 +21,9 @@ Description:    This module presents a type for storing numbers
                 probabilities as is done in Hidden Markov Models.
                 It is also helpful for preventing overflow.
 
+Flag base4
+    Description: base-4.0 deprecated Prelude which is imported qualified
+    Default:     True
 
 Flag splitBase
     Description: base-3.0 broke out array and other packages
@@ -39,6 +42,12 @@ Library
                    , Data.Number.Transfinite
                    , Data.Number.PartialOrd
                    , Hugs.RealFloat
+    -- I think this is all that needs doing to get rid of the warnings?
+    if flag(base4)
+        Build-Depends: base >= 4 && < 5
+    else
+        Build-Depends: base < 4
+    
     if flag(splitBase)
         Build-depends: base >= 3.0, array
     else
