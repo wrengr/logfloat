@@ -21,6 +21,11 @@ Description:    This module presents a type for storing numbers
                 probabilities as is done in Hidden Markov Models.
                 It is also helpful for preventing overflow.
 
+Source-Repository head
+    Type:     darcs
+    Location: http://community.haskell.org/~wren/logfloat
+
+
 Flag base4
     Description: base-4.0 deprecated Prelude which is imported qualified
     Default:     True
