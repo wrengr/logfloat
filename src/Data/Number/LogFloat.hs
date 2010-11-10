@@ -13,12 +13,16 @@
 -- Removed -Wall because -fno-warn-orphans was removed in GHC 6.10
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
--- Unfortunately we need -fglasgow-exts in order to actually pick
--- up on the rules (see -ddump-rules). The -frewrite-rules flag
--- doesn't do what you want.
--- cf <http://hackage.haskell.org/trac/ghc/ticket/2213>
--- cf <http://www.mail-archive.com/glasgow-haskell-users@haskell.org/msg14313.html>
-{-# OPTIONS_GHC -O2 -fexcess-precision -fglasgow-exts #-}
+-- Unfortunately GHC < 6.10 needs -fglasgow-exts in order to actually
+-- parse RULES (see -ddump-rules); the -frewrite-rules flag only
+-- enables the application of rules, instead of doing what we want.
+-- Apparently this is fixed in 6.10.
+--
+-- http://hackage.haskell.org/trac/ghc/ticket/2213
+-- http://www.mail-archive.com/glasgow-haskell-users@haskell.org/msg14313.html
+{-# OPTIONS_GHC -O2 -fglasgow-exts -frewrite-rules #-}
+
+{-# OPTIONS_GHC -O2 -fexcess-precision #-}
 
 ----------------------------------------------------------------
 --                                                  ~ 2010.03.19
@@ -316,7 +320,7 @@ instance Show LogFloat where
 -- be safe.
 
 #ifdef __USE_FFI__
-#define LOG1P_WHICH_VERSION specialized version.
+#define LOG1P_WHICH_VERSION FFI version.
 #else
 #define LOG1P_WHICH_VERSION naive version! \
     Contact the maintainer with any FFI difficulties.
@@ -330,14 +334,24 @@ instance Show LogFloat where
 -- specialized version underflows around @2 ** -1074@. This function
 -- is used by ('+') and ('-') on @LogFloat@.
 --
+-- N.B. The @statistics:Statistics.Math@ module provides a pure
+-- Haskell implementation of @log1p@ for those who are interested.
+-- We do not copy it here because it relies on the @vector@ package
+-- which is non-portable. If there is sufficient interest, a portable
+-- variant of that implementation could be made. Contact the
+-- maintainer if the FFI and naive implementations are insufficient
+-- for your needs.
+--
 -- /This installation was compiled to use the LOG1P_WHICH_VERSION/
 
 #ifdef __USE_FFI__
 foreign import ccall unsafe "math.h log1p"
     log1p :: Double -> Double
 #else
+-- See statistics:Statistics.Math for a more accurate Haskell
+-- implementation.
 log1p :: Double -> Double
-{-# INLINE log1p #-}
+{-# INLINE [0] log1p #-}
 log1p x = log (1 + x)
 #endif
 
@@ -355,9 +369,20 @@ foreign import ccall unsafe "math.h expm1"
     expm1 :: Double -> Double
 #else
 expm1 :: Double -> Double
-{-# INLINE expm1 #-}
+{-# INLINE [0] expm1 #-}
 expm1 x = exp x - 1
 #endif
+
+
+{-# RULES
+-- Into log-domain and back out
+"expm1/log1p"    forall x. expm1 (log1p x) = x
+"expm1.log1p"              expm1 . log1p   = id
+
+-- Out of log-domain and back in
+"log1p/expm1"    forall x. log1p (expm1 x) = x
+"log1p.expm1"              log1p . expm1   = id
+    #-}
 
 ----------------------------------------------------------------
 -- These all work without causing underflow. However, do note that

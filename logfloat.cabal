@@ -1,10 +1,11 @@
 ----------------------------------------------------------------
--- wren ng thornton <wren@community.haskell.org>    ~ 2010.06.10
+-- wren ng thornton <wren@community.haskell.org>    ~ 2010.11.10
 ----------------------------------------------------------------
 
 Name:           logfloat
-Version:        0.12.1.1
-Cabal-Version:  >= 1.2
+Version:        0.12.1.2
+-- Source-Repository requires version 1.6
+Cabal-Version:  >= 1.6
 Build-Type:     Simple
 Stability:      experimental
 Copyright:      Copyright (c) 2007--2010 wren ng thornton
@@ -25,21 +26,26 @@ Source-Repository head
     Type:     darcs
     Location: http://community.haskell.org/~wren/logfloat
 
-
+----------------------------------------------------------------
 Flag base4
-    Description: base-4.0 deprecated Prelude which is imported qualified
     Default:     True
+    Description: base-4.0 emits "Prelude deprecated" messages in
+                 order to get people to be explicit about which
+                 version of base they use.
 
 Flag splitBase
-    Description: base-3.0 broke out array and other packages
-    Default:     False
+    Default:     True
+    Description: base-3.0 (GHC 6.8) broke out the packages: array,
+                 bytestring, containers, directory, old-locale,
+                 old-time, packedstring, pretty, process, random.
 
 Flag useFFI
+    Default:     True
     Description: Use FFI to link C's log1p. Improves accuracy and
                  same performance. Disable only if your compiler
                  doesn't support FFI.
-    Default:     True
 
+----------------------------------------------------------------
 Library
     Hs-Source-Dirs:  src
     Exposed-Modules: Data.Number.LogFloat
