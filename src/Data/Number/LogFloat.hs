@@ -220,28 +220,30 @@ instance PartialOrd LogFloat where
 -- | Reduce the number of constant string literals we need to store.
 errorOutOfRange :: String -> a
 {-# NOINLINE errorOutOfRange #-}
-errorOutOfRange fun = error $! "Data.Number.LogFloat."++fun
-                            ++ ": argument out of range"
+errorOutOfRange fun =
+    error $! "Data.Number.LogFloat."++fun++ ": argument out of range"
 
 -- Both guards are redundant due to the subsequent call to
 -- 'Data.Number.Transfinite.log' at all use sites. However we use
 -- this function to give local error messages. Perhaps we should
 -- catch the exception and throw the new message instead? Portability?
 
-guardNonNegative      :: String -> Double -> Double
-guardNonNegative fun x | isNaN x || x < 0 = errorOutOfRange fun
-                       | otherwise        = x
+guardNonNegative :: String -> Double -> Double
+guardNonNegative fun x
+    | isNaN x || x < 0 = errorOutOfRange fun
+    | otherwise        = x
 
-guardIsANumber        :: String -> Double -> Double
-guardIsANumber   fun x | isNaN x   = errorOutOfRange fun
-                       | otherwise = x
+guardIsANumber :: String -> Double -> Double
+guardIsANumber fun x
+    | isNaN x   = errorOutOfRange fun
+    | otherwise = x
 
 ----------------------------------------------------------------
 -- | Constructor which does semantic conversion from normal-domain
 -- to log-domain. Throws errors on negative input.
 logFloat :: (Real a, RealToFrac a Double) => a -> LogFloat
 {-# SPECIALIZE logFloat :: Double -> LogFloat #-}
-logFloat  = LogFloat . log . guardNonNegative "logFloat" . realToFrac
+logFloat = LogFloat . log . guardNonNegative "logFloat" . realToFrac
 
 
 -- This is simply a polymorphic version of the 'LogFloat' data
@@ -255,7 +257,7 @@ logFloat  = LogFloat . log . guardNonNegative "logFloat" . realToFrac
 -- log-domain. Throws errors on @notANumber@ input.
 logToLogFloat :: (Real a, RealToFrac a Double) => a -> LogFloat
 {-# SPECIALIZE logToLogFloat :: Double -> LogFloat #-}
-logToLogFloat  = LogFloat . guardIsANumber "logToLogFloat" . realToFrac
+logToLogFloat = LogFloat . guardIsANumber "logToLogFloat" . realToFrac
 
 
 -- | Return our log-domain value back into normal-domain. Beware
