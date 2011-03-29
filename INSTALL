@@ -51,8 +51,14 @@ Some additional details about difficulties with building
 for Hugs can be found in this blog post and the bug reports:
 
     http://winterkoninkje.livejournal.com/60707.html
-	http://hackage.haskell.org/trac/hackage/ticket/526
-	http://hackage.haskell.org/trac/hackage/ticket/527
+    http://hackage.haskell.org/trac/hackage/ticket/526
+    http://hackage.haskell.org/trac/hackage/ticket/527
+
+And while previous versions of Cabal could build this package (with
+the above commandline to work around those bugs), Hugs support is
+broken in Cabal 1.8 (including at least 1.8.0.2 through 1.8.0.6):
+
+    http://hackage.haskell.org/trac/hackage/ticket/633
 
 
 FFI Problems
