@@ -1,19 +1,22 @@
 ----------------------------------------------------------------
--- wren ng thornton <wren@community.haskell.org>    ~ 2010.11.10
+-- wren ng thornton <wren@community.haskell.org>    ~ 2012.02.08
 ----------------------------------------------------------------
 
-Name:           logfloat
-Version:        0.12.1.2
--- Source-Repository requires version 1.6
+-- By and large Cabal >=1.2 is fine; but >= 1.6 gives tested-with:
+-- and source-repository:.
 Cabal-Version:  >= 1.6
 Build-Type:     Simple
+
+Name:           logfloat
+Version:        0.12.1.4
 Stability:      experimental
-Copyright:      Copyright (c) 2007--2010 wren ng thornton
-License:        BSD3
-License-File:   LICENSE
+Homepage:       http://code.haskell.org/~wren/
 Author:         wren ng thornton
 Maintainer:     wren@community.haskell.org
-Homepage:       http://code.haskell.org/~wren/
+Copyright:      Copyright (c) 2007--2012 wren ng thornton
+License:        BSD3
+License-File:   LICENSE
+
 Category:       Data, Math, Natural Language Processing, Statistics
 Synopsis:       Log-domain floating point numbers
 Description:    This module presents a type for storing numbers
@@ -22,6 +25,8 @@ Description:    This module presents a type for storing numbers
                 probabilities as is done in Hidden Markov Models.
                 It is also helpful for preventing overflow.
 
+Extra-source-files:
+    INSTALL, VERSION
 Source-Repository head
     Type:     darcs
     Location: http://community.haskell.org/~wren/logfloat
