@@ -20,7 +20,8 @@ loop:
 
     runhaskell Setup.hs configure
     runhaskell Setup.hs build
-    runhaskell Setup.hs install
+    runhaskell Setup.hs copy
+    runhaskell Setup.hs register
 
 The logfloat package is no longer supported for GHC 6.6, though it
 could probably be made to work with it by changing LANGUAGE pragma
@@ -40,7 +41,8 @@ things with these modifications to the usual Cabal build loop:
         --ffihugs-options="-98 +o"        \
         --ffihugs-option=-F'cpp -P -traditional -D__HUGS__=200609 -D__USE_FFI__'
     runhaskell Setup.hs build
-    runhaskell Setup.hs install
+    runhaskell Setup.hs copy
+    runhaskell Setup.hs register
 
 Hugs installs cpphs under the name "cpphs-hugs" by default. The
 `which` command will try to resolve the location, assuming it's on
