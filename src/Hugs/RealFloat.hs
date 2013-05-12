@@ -11,7 +11,7 @@
 #define REALFLOAT_VERSION normal Prelude version. This could be buggy.
 #endif
 ----------------------------------------------------------------
---                                                  ~ 2010.03.19
+--                                                  ~ 2013.05.11
 -- |
 -- Module      :  Hugs.RealFloat
 -- Copyright   :  Copyright (c) 2007--2010 wren ng thornton
@@ -44,9 +44,7 @@ import Prelude hiding (isInfinite, isNaN)
 import qualified Prelude
 ----------------------------------------------------------------
 
-isInfinite  :: (RealFloat a) => a -> Bool
-{-# SPECIALIZE isInfinite :: Double -> Bool #-}
-{-# SPECIALIZE isInfinite :: Float  -> Bool #-}
+isInfinite :: (RealFloat a) => a -> Bool
 {-# INLINE isInfinite #-}
 #if defined(__HUGS__) && (__HUGS__ <= 200609)
 isInfinite x = (1/0) == abs x
@@ -56,8 +54,6 @@ isInfinite = Prelude.isInfinite
 
 
 isNaN :: (RealFloat a) => a -> Bool
-{-# SPECIALIZE isNaN :: Double -> Bool #-}
-{-# SPECIALIZE isNaN :: Float  -> Bool #-}
 {-# INLINE isNaN #-}
 #if defined(__HUGS__) && (__HUGS__ <= 200609)
 isNaN x = compareEQ x 0 && compareEQ x 1
@@ -65,10 +61,11 @@ isNaN x = compareEQ x 0 && compareEQ x 1
 -- | In Hugs (September 2006), 'compare' always returns @EQ@ if one
 -- of the arguments is not a number. Thus, if a number is @compareEQ@
 -- against multiple different numbers, then it must be @isNaN@.
-compareEQ    :: (Ord a) => a -> a -> Bool
-compareEQ x y = case compare x y of
-                EQ -> True
-                _  -> False
+compareEQ :: (Ord a) => a -> a -> Bool
+compareEQ x y =
+    case compare x y of
+    EQ -> True
+    _  -> False
 #else
 isNaN = Prelude.isNaN
 #endif
