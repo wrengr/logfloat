@@ -1,5 +1,5 @@
 -- FlexibleContexts needed by our RealToFrac contexts
--- CPP needed for IArray UArray instance
+-- CPP and GeneralizedNewtypeDeriving are needed for IArray UArray instance
 -- FFI is for log1p
 --     N.B. can't mix FFI and -fvia-C under ghc==6.10.1
 --     <http://hackage.haskell.org/trac/ghc/ticket/3117>
@@ -9,26 +9,32 @@
            , CPP
            , ForeignFunctionInterface
            #-}
+-- We don't put these in LANGUAGE, because it's CPP guarded for GHC only
+{-# OPTIONS_GHC -XGeneralizedNewtypeDeriving #-}
 
 -- Removed -Wall because -fno-warn-orphans was removed in GHC 6.10
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
+{-# OPTIONS_GHC -O2 -fexcess-precision #-}
+
 -- Unfortunately GHC < 6.10 needs -fglasgow-exts in order to actually
 -- parse RULES (see -ddump-rules); the -frewrite-rules flag only
 -- enables the application of rules, instead of doing what we want.
--- Apparently this is fixed in 6.10.
+-- Apparently this is fixed in 6.10. In newer GHC (e.g., 7.6.1) the
+-- -frewrite-rules flag is deprecated in favor of -fenable-rewrite-rules.
+-- It's unclear whether we can use CPP to switch between -fglasgow-exts
+-- -frewrite-rules and -fenable-rewrite-rules based on the GHC
+-- version...
 --
 -- http://hackage.haskell.org/trac/ghc/ticket/2213
 -- http://www.mail-archive.com/glasgow-haskell-users@haskell.org/msg14313.html
-{-# OPTIONS_GHC -O2 -fglasgow-exts -frewrite-rules #-}
-
-{-# OPTIONS_GHC -O2 -fexcess-precision #-}
+{-# OPTIONS_GHC -O2 -fenable-rewrite-rules #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2010.03.19
+--                                                  ~ 2013.05.11
 -- |
 -- Module      :  Data.Number.LogFloat
--- Copyright   :  Copyright (c) 2007--2010 wren ng thornton
+-- Copyright   :  Copyright (c) 2007--2013 wren ng thornton
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
 -- Stability   :  stable

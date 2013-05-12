@@ -14,7 +14,7 @@
 --                                                  ~ 2013.05.11
 -- |
 -- Module      :  Hugs.RealFloat
--- Copyright   :  Copyright (c) 2007--2010 wren ng thornton
+-- Copyright   :  Copyright (c) 2007--2013 wren ng thornton
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
 -- Stability   :  stable

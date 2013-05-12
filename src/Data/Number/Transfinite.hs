@@ -3,17 +3,21 @@
 -- Unfortunately GHC < 6.10 needs -fglasgow-exts in order to actually
 -- parse RULES (see -ddump-rules); the -frewrite-rules flag only
 -- enables the application of rules, instead of doing what we want.
--- Apparently this is fixed in 6.10.
+-- Apparently this is fixed in 6.10. In newer GHC (e.g., 7.6.1) the
+-- -frewrite-rules flag is deprecated in favor of -fenable-rewrite-rules.
+-- It's unclear whether we can use CPP to switch between -fglasgow-exts
+-- -frewrite-rules and -fenable-rewrite-rules based on the GHC
+-- version...
 --
 -- http://hackage.haskell.org/trac/ghc/ticket/2213
 -- http://www.mail-archive.com/glasgow-haskell-users@haskell.org/msg14313.html
-{-# OPTIONS_GHC -O2 -fglasgow-exts -frewrite-rules #-}
+{-# OPTIONS_GHC -O2 -fenable-rewrite-rules #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2009.03.09
+--                                                  ~ 2013.05.11
 -- |
 -- Module      :  Data.Number.Transfinite
--- Copyright   :  Copyright (c) 2007--2010 wren ng thornton
+-- Copyright   :  Copyright (c) 2007--2013 wren ng thornton
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
 -- Stability   :  stable
