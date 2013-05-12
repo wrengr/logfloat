@@ -118,11 +118,11 @@ class (PartialOrd a) => Transfinite a where
     --
     -- * @inf \/ inf@
     --
-    -- * @inf `div` inf@
+    -- * @inf \`div\` inf@
     --
     -- * @0 \/ 0@
     --
-    -- * @0 `div` 0@
+    -- * @0 \`div\` 0@
     --
     -- Additionally, any mathematical operations on @notANumber@
     -- must also return @notANumber@, and any equality or ordering

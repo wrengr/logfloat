@@ -5,13 +5,14 @@
            , OverlappingInstances
            , FlexibleInstances
            , CPP
-           , MagicHash
            #-}
+-- We don't put these in LANGUAGE, because it's CPP guarded for GHC only
+{-# OPTIONS_GHC -XMagicHash #-}
 
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2009.01.29
+--                                                  ~ 2013.05.11
 -- |
 -- Module      :  Data.Number.RealToFrac
 -- Copyright   :  Copyright (c) 2007--2013 wren ng thornton

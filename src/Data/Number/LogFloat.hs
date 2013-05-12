@@ -151,9 +151,9 @@ newtype LogFloat = LogFloat Double
 infixr 2 ~>
 f ~> g = (. f) . (g .)
 
-{-# INLINE ($.) #-}
-infixl 1 $.
-($.) = flip ($)
+{-# INLINE ($::) #-}
+infixl 1 $::
+($::) = flip ($)
 
 
 {-# INLINE logFromLFAssocs #-}
@@ -172,7 +172,7 @@ unsafeLogToLFUArray = unsafeCoerce
 -- Named unsafe because it could allow injecting NaN if misused
 {-# INLINE unsafeLogToLFFunc #-}
 unsafeLogToLFFunc :: (LogFloat -> a -> LogFloat) -> (Double -> a -> Double)
-unsafeLogToLFFunc = ($. unsafeLogToLogFloat ~> id ~> logFromLogFloat)
+unsafeLogToLFFunc = ($:: unsafeLogToLogFloat ~> id ~> logFromLogFloat)
 
 -- | Remove the extraneous 'isNaN' test of 'logToLogFloat', when
 -- we know it's safe.
@@ -194,23 +194,23 @@ instance IArray UArray LogFloat where
     
     {-# INLINE unsafeArray #-}
     unsafeArray =
-        unsafeArray $. id ~> logFromLFAssocs ~> unsafeLogToLFUArray
+        unsafeArray $:: id ~> logFromLFAssocs ~> unsafeLogToLFUArray
     
     {-# INLINE unsafeAt #-}
     unsafeAt =
-        unsafeAt $. logFromLFUArray ~> id ~> unsafeLogToLogFloat
+        unsafeAt $:: logFromLFUArray ~> id ~> unsafeLogToLogFloat
     
     {-# INLINE unsafeReplace #-}
     unsafeReplace =
-        unsafeReplace $. logFromLFUArray ~> logFromLFAssocs ~> unsafeLogToLFUArray
+        unsafeReplace $:: logFromLFUArray ~> logFromLFAssocs ~> unsafeLogToLFUArray
     
     {-# INLINE unsafeAccum #-}
     unsafeAccum =
-        unsafeAccum $. unsafeLogToLFFunc ~> logFromLFUArray ~> id ~> unsafeLogToLFUArray
+        unsafeAccum $:: unsafeLogToLFFunc ~> logFromLFUArray ~> id ~> unsafeLogToLFUArray
     
     {-# INLINE unsafeAccumArray #-}
     unsafeAccumArray =
-        unsafeAccumArray $. unsafeLogToLFFunc ~> logFromLogFloat ~> id ~> id ~> unsafeLogToLFUArray
+        unsafeAccumArray $:: unsafeLogToLFFunc ~> logFromLogFloat ~> id ~> id ~> unsafeLogToLFUArray
 #endif
 
 -- TODO: the Nothing branch should never be reachable. Once we get
@@ -317,8 +317,9 @@ logFromLogFloat (LogFloat x) = realToFrac x
 -- log-domain value instead.
 
 instance Show LogFloat where
-    show (LogFloat x) = let y = exp x
-                        in  y `seq` "LogFloat "++show y
+    show (LogFloat x) =
+        let y = exp x
+        in  y `seq` "LogFloat "++show y
 
 
 ----------------------------------------------------------------
@@ -335,12 +336,12 @@ instance Show LogFloat where
 #endif
 
 
--- | Definition: @log1p == log . (1+)@. The C language provides a
--- special definition for 'log1p' which is more accurate than doing
--- the naive thing, especially for very small arguments. For example,
--- the naive version underflows around @2 ** -53@, whereas the
--- specialized version underflows around @2 ** -1074@. This function
--- is used by ('+') and ('-') on @LogFloat@.
+-- | Definition: @log1p == log . (1+)@. Standard C libraries provide
+-- a special definition for 'log1p' which is more accurate than
+-- doing the naive thing, especially for very small arguments. For
+-- example, the naive version underflows around @2 ** -53@, whereas
+-- the specialized version underflows around @2 ** -1074@. This
+-- function is used by ('+') and ('-') on @LogFloat@.
 --
 -- N.B. The @statistics:Statistics.Math@ module provides a pure
 -- Haskell implementation of @log1p@ for those who are interested.
@@ -364,8 +365,8 @@ log1p x = log (1 + x)
 #endif
 
 
--- | Definition: @expm1 == (subtract 1) . exp@. The C language
--- provides a special definition for 'expm1' which is more accurate
+-- | Definition: @expm1 == subtract 1 . exp@. Standard C libraries
+-- provide a special definition for 'expm1' which is more accurate
 -- than doing the naive thing, especially for very small arguments.
 -- This function isn't needed internally, but is provided for
 -- symmetry with 'log1p'.
