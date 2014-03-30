@@ -425,7 +425,9 @@ instance Num LogFloat where
         |    x == negativeInfinity
           && y == negativeInfinity = LogFloat negativeInfinity -- @0-0 == 0@
         | otherwise =
-            -- Will throw error if x < y or if (x,y) is (infinity,infinity)
+            -- BUG: Will throw error if x < y
+            -- TODO: flip @x@ and @y@ when @y > x@.
+            -- Also, will throw error if (x,y) is (infinity,infinity)
             LogFloat (guardIsANumber "(-)" (x + log1p (negate (exp (y - x)))))
     
     signum (LogFloat x)
