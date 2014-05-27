@@ -6,7 +6,7 @@
 --                                                  ~ 2009.03.07
 -- |
 -- Module      :  Data.Number.LogFloat.IArrayTest
--- Copyright   :  Copyright (c) 2007--2009 wren ng thornton
+-- Copyright   :  Copyright (c) 2007--2009 wren gayle romano
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
 -- Stability   :  stable

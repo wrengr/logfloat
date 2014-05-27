@@ -4,7 +4,7 @@
 --                                                  ~ 2010.03.19
 -- |
 -- Module      :  Data.Number.LogFloat.Corners
--- Copyright   :  Copyright (c) 2007--2010 wren ng thornton
+-- Copyright   :  Copyright (c) 2007--2010 wren gayle romano
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
 -- Stability   :  stable

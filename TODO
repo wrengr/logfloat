@@ -1,3 +1,5 @@
+* define the appropriate version of `sum` instead of using the `foldl' (+) 0` version
+
 * Use pointless-fun instead of our own definitions.
 
 * Maybe use lattice:Algebra.PartialOrd instead of out own.
