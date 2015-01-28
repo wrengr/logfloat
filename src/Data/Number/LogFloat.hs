@@ -1,40 +1,18 @@
--- FlexibleContexts needed by our RealToFrac contexts
 -- CPP and GeneralizedNewtypeDeriving are needed for IArray UArray instance
 -- FFI is for log1p
---     N.B. can't mix FFI and -fvia-C under ghc==6.10.1
---     <http://hackage.haskell.org/trac/ghc/ticket/3117>
---     TODO: figure out how to conditionally use "-fvia-C -optc-O3"
---     for ghc6.8 when not using Cabal to compile.
-{-# LANGUAGE FlexibleContexts
-           , CPP
-           , ForeignFunctionInterface
-           #-}
+{-# LANGUAGE CPP, ForeignFunctionInterface #-}
 -- We don't put these in LANGUAGE, because it's CPP guarded for GHC only
 {-# OPTIONS_GHC -XGeneralizedNewtypeDeriving #-}
 
--- Removed -Wall because -fno-warn-orphans was removed in GHC 6.10
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
-{-# OPTIONS_GHC -O2 -fexcess-precision #-}
-
--- Unfortunately GHC < 6.10 needs -fglasgow-exts in order to actually
--- parse RULES (see -ddump-rules); the -frewrite-rules flag only
--- enables the application of rules, instead of doing what we want.
--- Apparently this is fixed in 6.10. In newer GHC (e.g., 7.6.1) the
--- -frewrite-rules flag is deprecated in favor of -fenable-rewrite-rules.
--- It's unclear whether we can use CPP to switch between -fglasgow-exts
--- -frewrite-rules and -fenable-rewrite-rules based on the GHC
--- version...
---
--- http://hackage.haskell.org/trac/ghc/ticket/2213
--- http://www.mail-archive.com/glasgow-haskell-users@haskell.org/msg14313.html
-{-# OPTIONS_GHC -O2 -fenable-rewrite-rules #-}
+{-# OPTIONS_GHC -O2 -fexcess-precision -fenable-rewrite-rules #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2013.05.11
+--                                                  ~ 2015.01.27
 -- |
 -- Module      :  Data.Number.LogFloat
--- Copyright   :  Copyright (c) 2007--2013 wren gayle romano
+-- Copyright   :  Copyright (c) 2007--2015 wren gayle romano
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
 -- Stability   :  stable
@@ -61,7 +39,6 @@ module Data.Number.LogFloat
     (
     -- * Exceptional numeric values
       module Data.Number.Transfinite
-    , module Data.Number.RealToFrac
     
     -- * @LogFloat@ data type
     , LogFloat
@@ -71,14 +48,17 @@ module Data.Number.LogFloat
     -- ** Isomorphism to log-domain
     , logToLogFloat
     , logFromLogFloat
+    -- ** Additional operations
+    , sum, product
+    , pow
     
     -- * Accurate versions of logarithm\/exponentiation
     , log1p, expm1
     ) where
 
-import Prelude hiding (log, realToFrac, isInfinite, isNaN)
+import Prelude hiding (log, sum, product, isInfinite, isNaN)
+import Data.List (foldl')
 
-import Data.Number.RealToFrac
 import Data.Number.Transfinite
 import Data.Number.PartialOrd
 
@@ -105,8 +85,23 @@ import Foreign.Storable (Storable)
 -- | A @LogFloat@ is just a 'Double' with a special interpretation.
 -- The 'logFloat' function is presented instead of the constructor,
 -- in order to ensure semantic conversion. At present the 'Show'
--- instance will convert back to the normal-domain, and so will
+-- instance will convert back to the normal-domain, and hence will
 -- underflow at that point. This behavior may change in the future.
+--
+-- Because 'logFloat' performs the semantic conversion, we can use
+-- operators which say what we *mean* rather than saying what we're
+-- actually doing to the underlying representation. That is,
+-- equivalences like the following are true[1] thanks to type-class
+-- overloading:
+--
+-- > logFloat (p + q) == logFloat p + logFloat q
+-- > logFloat (p * q) == logFloat p * logFloat q
+--
+-- (Do note, however, that subtraction can and negation will throw
+-- errors: since @LogFloat@ can only represent the positive half of
+-- 'Double'. 'Num' is the wrong abstraction to put at the bottom
+-- of the numeric type-class hierarchy; but alas, we're stuck with
+-- it.)
 --
 -- Performing operations in the log-domain is cheap, prevents
 -- underflow, and is otherwise very nice for dealing with miniscule
@@ -115,17 +110,22 @@ import Foreign.Storable (Storable)
 -- particular, if you're doing a series of multiplications as in
 -- @lp * logFloat q * logFloat r@ it's faster to do @lp * logFloat
 -- (q * r)@ if you're reasonably sure the normal-domain multiplication
--- won't underflow, because that way you enter the log-domain only
--- once, instead of twice.
+-- won't underflow; because that way you enter the log-domain only
+-- once, instead of twice. Also note that, for precision, if you're
+-- doing more than a few multiplications in the log-domain, you
+-- should use 'product' rather than using '(*)' repeatedly.
 --
 -- Even more particularly, you should /avoid addition/ whenever
--- possible. Addition is provided because it's necessary at times
--- and the proper implementation is not immediately transparent.
--- However, between two @LogFloat@s addition requires crossing the
--- exp\/log boundary twice; with a @LogFloat@ and a regular number
--- it's three times since the regular number needs to enter the
--- log-domain first. This makes addition incredibly slow. Again,
--- if you can parenthesize to do plain operations first, do it!
+-- possible. Addition is provided because sometimes we need it, and
+-- the proper implementation is not immediately apparent. However,
+-- between two @LogFloat@s addition requires crossing the exp\/log
+-- boundary twice; with a @LogFloat@ and a 'Double' it's three
+-- times, since the regular number needs to enter the log-domain
+-- first. This makes addition incredibly slow. Again, if you can
+-- parenthesize to do normal-domain operations first, do it!
+--
+-- [1] That is, true up-to underflow and floating point fuzziness.
+-- Which is, of course, the whole point of this module.
 
 newtype LogFloat = LogFloat Double
     deriving
@@ -246,64 +246,55 @@ guardIsANumber fun x
 
 ----------------------------------------------------------------
 -- | Constructor which does semantic conversion from normal-domain
--- to log-domain. Throws errors on negative input.
-logFloat :: (Real a, RealToFrac a Double) => a -> LogFloat
-{-# SPECIALIZE logFloat :: Double -> LogFloat #-}
-logFloat = LogFloat . log . guardNonNegative "logFloat" . realToFrac
-
-
--- This is simply a polymorphic version of the 'LogFloat' data
--- constructor. We present it mainly because we hide the constructor
--- in order to make the type a bit more opaque. If the polymorphism
--- turns out to be a performance liability because the rewrite rules
--- can't remove it, then we need to rethink all four
--- constructors\/destructors.
+-- to log-domain. Throws errors on negative and NaN inputs. If @p@
+-- is non-negative, then following equivalence holds:
 --
+-- > logFloat p == logToLogFloat (log p)
+--
+-- If @p@ is NaN or negative, then the two sides differ only in
+-- which error is thrown.
+logFloat :: Double -> LogFloat
+{-# INLINE [0] logFloat #-}
+-- TODO: should we use NOINLINE or [~0] to avoid the possibility of code bloat?
+logFloat = LogFloat . log . guardNonNegative "logFloat"
+
+
 -- | Constructor which assumes the argument is already in the
--- log-domain. Throws errors on @notANumber@ input.
-logToLogFloat :: (Real a, RealToFrac a Double) => a -> LogFloat
-{-# SPECIALIZE logToLogFloat :: Double -> LogFloat #-}
-logToLogFloat = LogFloat . guardIsANumber "logToLogFloat" . realToFrac
+-- log-domain. Throws errors on @notANumber@ inputs.
+logToLogFloat :: Double -> LogFloat
+logToLogFloat = LogFloat . guardIsANumber "logToLogFloat"
 
 
--- | Return our log-domain value back into normal-domain. Beware
--- of overflow\/underflow.
-fromLogFloat :: (Fractional a, Transfinite a, RealToFrac Double a)
-             => LogFloat -> a
-{-# SPECIALIZE fromLogFloat :: LogFloat -> Double #-}
-fromLogFloat (LogFloat x) = realToFrac (exp x)
+-- | Semantically convert our log-domain value back into the
+-- normal-domain. Beware of overflow\/underflow. The following
+-- equivalence holds (without qualification):
+--
+-- > fromLogFloat == exp . logFromLogFloat
+--
+fromLogFloat :: LogFloat -> Double
+{-# INLINE [0] fromLogFloat #-}
+-- TODO: should we use NOINLINE or [~0] to avoid the possibility of code bloat?
+fromLogFloat (LogFloat x) = exp x
 
 
 -- | Return the log-domain value itself without conversion.
-logFromLogFloat :: (Fractional a, Transfinite a, RealToFrac Double a)
-                => LogFloat -> a
-{-# SPECIALIZE logFromLogFloat :: LogFloat -> Double #-}
-logFromLogFloat (LogFloat x) = realToFrac x
+logFromLogFloat :: LogFloat -> Double
+logFromLogFloat (LogFloat x) = x
 
 
 -- These are our module-specific versions of "log\/exp" and "exp\/log";
 -- They do the same things but also have a @LogFloat@ in between
--- the logarithm and exponentiation.
---
--- In order to ensure these rules fire we may need to delay inlining
--- of the four con-\/destructors, like we do for 'realToFrac'.
--- Unfortunately, I'm not entirely sure whether they will be inlined
--- already or not (and whether they are may be fragile) and I don't
--- want to inline them excessively and lead to code bloat in the
--- off chance that we could prune some of it away.
--- TODO: thoroughly investigate this.
+-- the logarithm and exponentiation. In order to ensure these rules
+-- fire, we have to delay the inlining on two of the four
+-- con-\/destructors.
 
 {-# RULES
 -- Out of log-domain and back in
 "log/fromLogFloat"       forall x. log (fromLogFloat x) = logFromLogFloat x
-"log.fromLogFloat"                 log . fromLogFloat   = logFromLogFloat
-
 "logFloat/fromLogFloat"  forall x. logFloat (fromLogFloat x) = x
-"logFloat.fromLogFloat"            logFloat . fromLogFloat   = id
 
 -- Into log-domain and back out
 "fromLogFloat/logFloat"  forall x. fromLogFloat (logFloat x) = x
-"fromLogFloat.logFloat"            fromLogFloat . logFloat   = id
     #-}
 
 ----------------------------------------------------------------
@@ -386,11 +377,9 @@ expm1 x = exp x - 1
 {-# RULES
 -- Into log-domain and back out
 "expm1/log1p"    forall x. expm1 (log1p x) = x
-"expm1.log1p"              expm1 . log1p   = id
 
 -- Out of log-domain and back in
 "log1p/expm1"    forall x. log1p (expm1 x) = x
-"log1p.expm1"              log1p . expm1   = id
     #-}
 
 ----------------------------------------------------------------
@@ -448,7 +437,8 @@ instance Num LogFloat where
 
 
 instance Fractional LogFloat where
-    -- n/0 == infinity is handled seamlessly for us. We must catch 0/0 and infinity/infinity NaNs, and handle 0/infinity.
+    -- n/0 == infinity is handled seamlessly for us. We must catch
+    -- 0/0 and infinity/infinity NaNs, and handle 0/infinity.
     (/) (LogFloat x) (LogFloat y)
         | x == y
           && isInfinite x
@@ -470,17 +460,109 @@ instance Real LogFloat where
         ex = exp x
 
 
-{- -- Commented out because I'm not sure about requiring MPTCs. Of course, those are already required by "Data.Number.Transfinite" so it's pretty moot...
+----------------------------------------------------------------
+-- | /O(1)/. Compute powers in the log-domain; that is, the following
+-- equivalence holds (modulo underflow and all that):
+--
+-- > logFloat (p ** m) == logFloat p `pow` m
+--
+-- /Since: 0.14/
+pow :: LogFloat -> Double -> LogFloat
+{-# INLINE pow #-}
+infixr 8 `pow`
+pow (LogFloat x) m
+    | isNaN mx  = LogFloat 0
+    | otherwise = LogFloat mx
+    where
+    -- N.B., will be NaN when @x == negativeInfinity && m == 0@
+    -- (which is true when m is -0 as well as +0). We check for NaN
+    -- after multiplying, rather than checking this precondition
+    -- before multiplying, in an attempt to simplify/optimize the
+    -- generated code.
+    -- TODO: benchmark.
+    mx = m * x
 
--- LogFloat->LogFloat is already given via generic (a->a)
--- No LogFloat->Rational since LogFloat can have 'infinity'
--- Can't have LogFloat->a using fromLogFloat because Hugs dislikes incoherence. Adding an explicit LogFloat->LogFloat instance doesn't help like it does for GHC.
 
-instance RealToFrac LogFloat Double where
-    realToFrac = fromLogFloat
+-- TODO: check out ekmett's compensated library.
+
+
+-- Some good test cases:
+-- for @logsumexp == log . sum . map exp@:
+--     logsumexp[0,1,0] should be about 1.55
+-- for correctness of avoiding underflow:
+--     logsumexp[1000,1001,1000]   ~~ 1001.55 ==  1000 + 1.55
+--     logsumexp[-1000,-999,-1000] ~~ -998.45 == -1000 + 1.55
+--
+-- | /O(n)/. Compute the sum of a finite list of 'LogFloat's, being
+-- careful to avoid underflow issues. That is, the following
+-- equivalence holds (modulo underflow and all that):
+--
+-- > logFloat . sum == sum . map logFloat
+--
+-- /N.B./, this function requires two passes over the input. Thus,
+-- it is not amenable to list fusion, and hence will use a lot of
+-- memory when summing long lists.
+--
+-- /Since: 0.14/
+sum :: [LogFloat] -> LogFloat
+sum xs = LogFloat (theMax + theSum)
+    where
+    theMax = logFromLogFloat (maximum xs)
     
-instance RealToFrac LogFloat Float where
-    realToFrac = fromLogFloat
+    -- compute @\log \sum_{x \in xs} \exp(x - theMax)@
+    theSum = foldl' (\ acc x -> acc + exp (logFromLogFloat x - theMax)) 0 xs
+
+-- TODO: expose a single-pass version for the special case where the first element of the list is (promised to be) the maximum element?
+
+
+
+-- | /O(n)/. Compute the product of a finite list of 'LogFloat's,
+-- being careful to avoid numerical error due to loss of precision.
+-- That is, the following equivalence holds (modulo underflow and
+-- all that):
+--
+-- > logFloat . product == product . map logFloat
+--
+-- /Since: 0.14/
+product :: [LogFloat] -> LogFloat
+product = kahan 0 0
+    where
+    kahan t c _ | t `seq` c `seq` False = undefined
+    kahan t _ []                = LogFloat t
+    kahan t c (LogFloat x : xs) =
+        -- Beware this getting incorrectly optimized away by constant folding!
+        let y  = x - c
+            t' = t + y
+            c' = (t' - t) - y
+        in kahan t' c' xs
+
+-- This version *completely* eliminates rounding errors and loss
+-- of significance due to catastrophic cancellation during summation.
+-- <http://code.activestate.com/recipes/393090/> Also see the other
+-- implementations given there.
+--
+-- For merely *mitigating* errors rather than completely eliminating
+-- them, see <http://code.activestate.com/recipes/298339/>.
+--
+-- A good test case is @msum([1, 1e100, 1, -1e100] * 10000) == 20000.0@
+{-
+-- For proof of correctness, see
+-- <www-2.cs.cmu.edu/afs/cs/project/quake/public/papers/robust-arithmetic.ps>
+def msum(iterable):
+    partials = []               # sorted, non-overlapping partial sums
+    for x in iterable:
+        i = 0
+        for y in partials:
+            if abs(x) < abs(y):
+                x, y = y, x
+            hi = x + y
+            lo = y - (hi - x)
+            if lo:
+                partials[i] = lo
+                i += 1
+            x = hi
+        partials[i:] = [x]
+    return sum(partials, 0.0)
 -}
 
 ----------------------------------------------------------------

@@ -15,7 +15,7 @@
 --                                                  ~ 2013.05.11
 -- |
 -- Module      :  Data.Number.RealToFrac
--- Copyright   :  Copyright (c) 2007--2013 wren gayle romano
+-- Copyright   :  Copyright (c) 2007--2015 wren gayle romano
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
 -- Stability   :  stable

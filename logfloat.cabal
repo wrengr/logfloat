@@ -1,5 +1,5 @@
 ----------------------------------------------------------------
--- wren gayle romano <wren@community.haskell.org>   ~ 2013.05.11
+-- wren gayle romano <wren@community.haskell.org>   ~ 2015.01.27
 ----------------------------------------------------------------
 
 -- By and large Cabal >=1.2 is fine; but >= 1.6 gives tested-with:
@@ -8,12 +8,12 @@ Cabal-Version:  >= 1.6
 Build-Type:     Simple
 
 Name:           logfloat
-Version:        0.12.1.6
+Version:        0.13
 Stability:      experimental
 Homepage:       http://code.haskell.org/~wren/
 Author:         wren gayle romano
 Maintainer:     wren@community.haskell.org
-Copyright:      Copyright (c) 2007--2013 wren gayle romano
+Copyright:      Copyright (c) 2007--2015 wren gayle romano
 License:        BSD3
 License-File:   LICENSE
 
@@ -25,8 +25,10 @@ Description:    This module presents a type for storing numbers
                 probabilities as is done in Hidden Markov Models.
                 It is also helpful for preventing overflow.
 
+
+-- TODO: does GHC 6.12.1 and 7.6.1 still work? do we care?
 Tested-With:
-    GHC == 6.12.1, GHC == 7.6.1
+    GHC == 7.8.3
 Extra-source-files:
     INSTALL, VERSION
 Source-Repository head
@@ -34,18 +36,6 @@ Source-Repository head
     Location: http://community.haskell.org/~wren/logfloat
 
 ----------------------------------------------------------------
-Flag base4
-    Default:     True
-    Description: base-4.0 emits "Prelude deprecated" messages in
-                 order to get people to be explicit about which
-                 version of base they use.
-
-Flag splitBase
-    Default:     True
-    Description: base-3.0 (GHC 6.8) broke out the packages: array,
-                 bytestring, containers, directory, old-locale,
-                 old-time, packedstring, pretty, process, random.
-
 Flag useFFI
     Default:     True
     Description: Use FFI to link C's log1p. Improves accuracy and
@@ -60,16 +50,10 @@ Library
                    , Data.Number.Transfinite
                    , Data.Number.PartialOrd
                    , Hugs.RealFloat
-    -- I think this is all that needs doing to get rid of the warnings?
-    if flag(base4)
-        Build-Depends: base >= 4 && < 5
-    else
-        Build-Depends: base < 4
     
-    if flag(splitBase)
-        Build-depends: base >= 3.0, array
-    else
-        Build-depends: base < 3.0
+    Build-Depends: base  == 4.*
+                 -- TODO: do we need any version constraints on array?
+                 , array
     
     if flag(useFFI)
         -- BUG (Cabal 1.2 + Haddock): See the INSTALL file.
@@ -77,13 +61,6 @@ Library
         CPP-Options: -D__USE_FFI__
         includes: math.h
         extra-libraries: m
-    
-    -- BUG (GHC 6.10.1): Can't mix FFI and -fvia-C
-    -- <http://hackage.haskell.org/trac/ghc/ticket/3117>
-    -- This is a momentary hack to keep it for 6.8
-    -- TODO: see if -fasm suffices for the benefits
-    if impl(ghc < 6.10)
-        GHC-Options: -fvia-C -optc-O3
     
     -- BUG (Cabal <= 1.6 + Hugs): See the INSTALL file.
     Hugs-Options: -98 +o
