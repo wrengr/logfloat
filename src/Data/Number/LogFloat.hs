@@ -9,7 +9,7 @@
 {-# OPTIONS_GHC -O2 -fexcess-precision -fenable-rewrite-rules #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2015.01.27
+--                                                  ~ 2015.02.17
 -- |
 -- Module      :  Data.Number.LogFloat
 -- Copyright   :  Copyright (c) 2007--2015 wren gayle romano
@@ -217,7 +217,7 @@ instance IArray UArray LogFloat where
 -- a test suite up and going to *verify* the never-NaN invariant,
 -- we should be able to eliminate the branch and the isNaN checks.
 instance PartialOrd LogFloat where
-    cmp (LogFloat x) (LogFloat y) 
+    cmp (LogFloat x) (LogFloat y)
         | isNaN x || isNaN y = Nothing
         | otherwise          = Just $! x `compare` y
 
@@ -391,7 +391,7 @@ expm1 x = exp x - 1
 -- multiplying many large numbers) so we're not too worried about
 -- +\/- 4e-16.
 
-instance Num LogFloat where 
+instance Num LogFloat where
     -- N.B. In Hugs (Sept2006) the (>=) always returns True if
     --      either isNaN. This does not constitute a bug since we
     --      maintain the invariant that values wrapped by 'LogFloat'
@@ -466,7 +466,7 @@ instance Real LogFloat where
 --
 -- > logFloat (p ** m) == logFloat p `pow` m
 --
--- /Since: 0.14/
+-- /Since: 0.13/
 pow :: LogFloat -> Double -> LogFloat
 {-# INLINE pow #-}
 infixr 8 `pow`
@@ -481,6 +481,13 @@ pow (LogFloat x) m
     -- generated code.
     -- TODO: benchmark.
     mx = m * x
+
+
+-- N.B., the default implementation of (**) for Complex is wrong.
+-- It can be fixed by using the definition:
+-- > x ** y = if x == 0 then 0 else exp (log x * y)
+-- cf., <https://ghc.haskell.org/trac/ghc/ticket/8539>
+-- TODO: Is this relevant to us at all?
 
 
 -- TODO: check out ekmett's compensated library.
@@ -503,7 +510,7 @@ pow (LogFloat x) m
 -- it is not amenable to list fusion, and hence will use a lot of
 -- memory when summing long lists.
 --
--- /Since: 0.14/
+-- /Since: 0.13/
 sum :: [LogFloat] -> LogFloat
 sum xs = LogFloat (theMax + theSum)
     where
@@ -512,7 +519,9 @@ sum xs = LogFloat (theMax + theSum)
     -- compute @\log \sum_{x \in xs} \exp(x - theMax)@
     theSum = foldl' (\ acc x -> acc + exp (logFromLogFloat x - theMax)) 0 xs
 
--- TODO: expose a single-pass version for the special case where the first element of the list is (promised to be) the maximum element?
+-- TODO: expose a single-pass version for the special case where
+-- the first element of the list is (promised to be) the maximum
+-- element?
 
 
 
@@ -523,7 +532,7 @@ sum xs = LogFloat (theMax + theSum)
 --
 -- > logFloat . product == product . map logFloat
 --
--- /Since: 0.14/
+-- /Since: 0.13/
 product :: [LogFloat] -> LogFloat
 product = kahan 0 0
     where
@@ -539,7 +548,9 @@ product = kahan 0 0
 -- This version *completely* eliminates rounding errors and loss
 -- of significance due to catastrophic cancellation during summation.
 -- <http://code.activestate.com/recipes/393090/> Also see the other
--- implementations given there.
+-- implementations given there. For Python's actual C implementation,
+-- see math_fsum in
+-- <http://svn.python.org/view/python/trunk/Modules/mathmodule.c?view=markup>
 --
 -- For merely *mitigating* errors rather than completely eliminating
 -- them, see <http://code.activestate.com/recipes/298339/>.
@@ -548,20 +559,25 @@ product = kahan 0 0
 {-
 -- For proof of correctness, see
 -- <www-2.cs.cmu.edu/afs/cs/project/quake/public/papers/robust-arithmetic.ps>
-def msum(iterable):
-    partials = []               # sorted, non-overlapping partial sums
-    for x in iterable:
+def msum(xs):
+    partials = [] # sorted, non-overlapping partial sums
+    # N.B., the actual C implementation uses a 32 array, doubling size as needed
+    for x in xs:
         i = 0
-        for y in partials:
+        for y in partials: # for(i = j = 0; j < n; j++)
             if abs(x) < abs(y):
                 x, y = y, x
             hi = x + y
             lo = y - (hi - x)
-            if lo:
+            if lo != 0.0:
                 partials[i] = lo
                 i += 1
             x = hi
+        # does an append of x while dropping all the partials after
+        # i. The C version does n=i; and leaves the garbage in place
         partials[i:] = [x]
+    # BUG: this last step isn't entirely correct and can lose
+    # precision <http://stackoverflow.com/a/2704565/358069>
     return sum(partials, 0.0)
 -}
 

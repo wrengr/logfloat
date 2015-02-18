@@ -1,4 +1,4 @@
-0.13 (2015-01-27):
+0.13 (2015-02-17):
     - monomorphized logFloat, logToLogFloat, fromLogFloat, logFromLogFloat
     - added sum, product, pow
     - cleaned up some extraneous rewrite rules
