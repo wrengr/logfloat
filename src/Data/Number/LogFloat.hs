@@ -512,12 +512,12 @@ pow (LogFloat x) m
 --
 -- /Since: 0.13/
 sum :: [LogFloat] -> LogFloat
-sum xs = LogFloat (theMax + theSum)
+sum xs = LogFloat (theMax + log theSum)
     where
-    theMax = logFromLogFloat (maximum xs)
+    LogFloat theMax = maximum xs
     
     -- compute @\log \sum_{x \in xs} \exp(x - theMax)@
-    theSum = foldl' (\ acc x -> acc + exp (logFromLogFloat x - theMax)) 0 xs
+    theSum = foldl' (\ acc (LogFloat x) -> acc + exp (x - theMax)) 0 xs
 
 -- TODO: expose a single-pass version for the special case where
 -- the first element of the list is (promised to be) the maximum
