@@ -177,7 +177,8 @@ logFromLFAssocs = unsafeCoerce
 #endif
 
 -- BUG: 'UArray' is declared to be nominal in the second type, so
--- these two are unsafe!
+-- these two are unsafe! We can use @Data.Array.Unboxed.amap coerce@,
+-- provided @Ix a@, but that's the expensive thing we hoped to avoid!
 {-# INLINE logFromLFUArray #-}
 logFromLFUArray :: UArray a LogFloat -> UArray a Double
 logFromLFUArray = unsafeCoerce
