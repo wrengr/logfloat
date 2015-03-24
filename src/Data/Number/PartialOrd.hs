@@ -1,3 +1,5 @@
+-- TODO: in GHC 7.10 OverlappingInstances is deprecated in favor
+-- of per-instance OVERLAPPING/OVERLAPPABLE/OVERLAPS pragmata.
 {-# LANGUAGE OverlappingInstances
            , FlexibleInstances
            , UndecidableInstances

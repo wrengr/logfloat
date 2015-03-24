@@ -1,6 +1,6 @@
 -- CPP and GeneralizedNewtypeDeriving are needed for IArray UArray instance
 -- FFI is for log1p
-{-# LANGUAGE CPP, ForeignFunctionInterface #-}
+{-# LANGUAGE CPP, ForeignFunctionInterface, MultiParamTypeClasses #-}
 -- We don't put these in LANGUAGE, because it's CPP guarded for GHC only
 {-# OPTIONS_GHC -XGeneralizedNewtypeDeriving #-}
 
@@ -9,7 +9,7 @@
 {-# OPTIONS_GHC -O2 -fexcess-precision -fenable-rewrite-rules #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2015.02.17
+--                                                  ~ 2015.03.23
 -- |
 -- Module      :  Data.Number.LogFloat
 -- Copyright   :  Copyright (c) 2007--2015 wren gayle romano
@@ -71,9 +71,14 @@ import Data.Array.Unboxed (UArray)
 -- Hugs (Sept 2006) doesn't use the generic wrapper in base:Unsafe.Coerce
 -- so we'll just have to go back to the original source.
 #ifdef __HUGS__
-import Hugs.IOExts (unsafeCoerce)
+import Hugs.IOExts        (unsafeCoerce)
 #elif __NHC__
 import NonStdUnsafeCoerce (unsafeCoerce)
+#elif __GLASGOW_HASKELL__ >= 710
+-- When we can, do...
+import Data.Coerce        (coerce)
+-- When we can't, pretend.
+import Unsafe.Coerce      (unsafeCoerce)
 #endif
 
 #ifdef __GLASGOW_HASKELL__
@@ -132,25 +137,32 @@ newtype LogFloat = LogFloat Double
     ( Eq
     , Ord -- Should we really perpetuate the Ord lie?
 #ifdef __GLASGOW_HASKELL__
-    -- At least GHC 6.8.2 can derive these (without
-    -- GeneralizedNewtypeDeriving). The H98 Report doesn't include
-    -- them among the options for automatic derivation though.
+    -- The H98 Report doesn't include these among the options for
+    -- automatic derivation. But GHC >= 6.8.2 (at least) can derive
+    -- them (even without GeneralizedNewtypeDeriving). However,
+    -- GHC >= 7.10 can't derive @IArray UArray@ thanks to the new
+    -- type-role stuff! since 'UArray' is declared to be nominal
+    -- in both arguments...
+#if __GLASGOW_HASKELL__ < 710
     , IArray UArray
+#endif
     , Storable
 #endif
     )
 
 
-#if __HUGS__ || __NHC__
+#if __HUGS__ || __NHC__ || (__GLASGOW_HASKELL__ >= 710)
 -- TODO: Storable instance. Though Foreign.Storable isn't in Hugs(Sept06)
 
 -- These two operators make it much easier to read the instance.
 -- Hopefully inlining everything will get rid of the eta overhead.
 -- <http://matt.immute.net/content/pointless-fun>
+(~>) :: (a -> b) -> (d -> c) -> (b -> d) -> a -> c
 {-# INLINE (~>) #-}
 infixr 2 ~>
 f ~> g = (. f) . (g .)
 
+($::) :: a -> (a -> b) -> b
 {-# INLINE ($::) #-}
 infixl 1 $::
 ($::) = flip ($)
@@ -158,8 +170,14 @@ infixl 1 $::
 
 {-# INLINE logFromLFAssocs #-}
 logFromLFAssocs :: [(Int, LogFloat)] -> [(Int, Double)]
+#if __GLASGOW_HASKELL__ >= 710
+logFromLFAssocs = coerce
+#else
 logFromLFAssocs = unsafeCoerce
+#endif
 
+-- BUG: 'UArray' is declared to be nominal in the second type, so
+-- these two are unsafe!
 {-# INLINE logFromLFUArray #-}
 logFromLFUArray :: UArray a LogFloat -> UArray a Double
 logFromLFUArray = unsafeCoerce
@@ -187,7 +205,7 @@ instance IArray UArray LogFloat where
     
 -- Apparently this method was added in base-2.0/GHC-6.6 but Hugs
 -- (Sept 2006) doesn't have it. Not sure about NHC's base
-#if __HUGS__ > 200609
+#if (!(defined(__HUGS__))) || (__HUGS__ > 200609)
     {-# INLINE numElements #-}
     numElements = numElements . logFromLFUArray
 #endif

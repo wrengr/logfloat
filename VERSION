@@ -1,3 +1,5 @@
+0.13.2 (2015-03-23):
+    - Preliminary fixes for dealing with type-roles in GHC 7.10
 0.13.1 (2015-03-10):
     - Fixed a major bug in sum
 0.13 (2015-02-17):

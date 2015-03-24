@@ -1,3 +1,6 @@
+-- TODO: in GHC 7.10 OverlappingInstances is deprecated in favor
+-- of per-instance OVERLAPPING/OVERLAPPABLE/OVERLAPS pragmata.
+--
 -- Needed to ensure correctness, and because we can't guarantee rules fire
 -- The MagicHash is for unboxed primitives (-fglasgow-exts also works)
 --     We only need MagicHash if on GHC, but we can't hide it in an #ifdef

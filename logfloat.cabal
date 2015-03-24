@@ -1,5 +1,5 @@
 ----------------------------------------------------------------
--- wren gayle romano <wren@community.haskell.org>   ~ 2015.03.10
+-- wren gayle romano <wren@community.haskell.org>   ~ 2015.03.23
 ----------------------------------------------------------------
 
 -- By and large Cabal >=1.2 is fine; but >= 1.6 gives tested-with:
@@ -8,7 +8,7 @@ Cabal-Version:  >= 1.6
 Build-Type:     Simple
 
 Name:           logfloat
-Version:        0.13.1
+Version:        0.13.2
 Stability:      experimental
 Homepage:       http://code.haskell.org/~wren/
 Author:         wren gayle romano
