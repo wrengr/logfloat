@@ -1,21 +1,22 @@
--- TODO: in GHC 7.10 OverlappingInstances is deprecated in favor
--- of per-instance OVERLAPPING/OVERLAPPABLE/OVERLAPS pragmata.
---
 -- Needed to ensure correctness, and because we can't guarantee rules fire
 -- The MagicHash is for unboxed primitives (-fglasgow-exts also works)
 --     We only need MagicHash if on GHC, but we can't hide it in an #ifdef
-{-# LANGUAGE MultiParamTypeClasses
-           , OverlappingInstances
+{-# LANGUAGE CPP
+           , MultiParamTypeClasses
            , FlexibleInstances
-           , CPP
            #-}
+
+#if __GLASGOW_HASKELL__ < 710
+{-# LANGUAGE OverlappingInstances #-}
+#endif
+           
 -- We don't put these in LANGUAGE, because it's CPP guarded for GHC only
 {-# OPTIONS_GHC -XMagicHash #-}
 
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2013.05.11
+--                                                  ~ 2013.05.29
 -- |
 -- Module      :  Data.Number.RealToFrac
 -- Copyright   :  Copyright (c) 2007--2015 wren gayle romano
@@ -79,7 +80,11 @@ class (Real a, Fractional b) => RealToFrac a b where
 instance (Real a, Fractional a) => RealToFrac a a where
     realToFrac = id
 
-instance (Real a, Transfinite a, Fractional b, Transfinite b)
+instance
+#if __GLASGOW_HASKELL__ >= 710
+    {-# OVERLAPPABLE #-}
+#endif
+    (Real a, Transfinite a, Fractional b, Transfinite b)
     => RealToFrac a b
     where
     realToFrac x
@@ -90,31 +95,55 @@ instance (Real a, Transfinite a, Fractional b, Transfinite b)
 
 
 #ifdef __GLASGOW_HASKELL__
-instance RealToFrac Int Float where
+instance
+#if __GLASGOW_HASKELL__ >= 710
+    {-# OVERLAPPING #-}
+#endif
+    RealToFrac Int Float where
     {-# INLINE realToFrac #-}
     realToFrac (I# i) = F# (int2Float# i)
 
-instance RealToFrac Int Double where
+instance
+#if __GLASGOW_HASKELL__ >= 710
+    {-# OVERLAPPING #-}
+#endif
+    RealToFrac Int Double where
     {-# INLINE realToFrac #-}
     realToFrac (I# i) = D# (int2Double# i)
 
 
-instance RealToFrac Integer Float where
+instance
+#if __GLASGOW_HASKELL__ >= 710
+    {-# OVERLAPPING #-}
+#endif
+    RealToFrac Integer Float where
     -- TODO: is there a more primitive way?
     {-# INLINE realToFrac #-}
     realToFrac j = Prelude.realToFrac j
 
-instance RealToFrac Integer Double where
+instance
+#if __GLASGOW_HASKELL__ >= 710
+    {-# OVERLAPPING #-}
+#endif
+    RealToFrac Integer Double where
     -- TODO: is there a more primitive way?
     {-# INLINE realToFrac #-}
     realToFrac j = Prelude.realToFrac j
 
 
-instance RealToFrac Float Double where
+instance
+#if __GLASGOW_HASKELL__ >= 710
+    {-# OVERLAPPING #-}
+#endif
+    RealToFrac Float Double where
     {-# INLINE realToFrac #-}
     realToFrac (F# f) = D# (float2Double# f)
     
-instance RealToFrac Double Float where
+instance
+#if __GLASGOW_HASKELL__ >= 710
+    {-# OVERLAPPING #-}
+#endif
+    RealToFrac Double Float where
     {-# INLINE realToFrac #-}
     realToFrac (D# d) = F# (double2Float# d)
 #endif

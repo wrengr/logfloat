@@ -1,9 +1,7 @@
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
-
 {-# OPTIONS_GHC -O2 -fenable-rewrite-rules #-}
-
 ----------------------------------------------------------------
---                                                  ~ 2015.03.23
+--                                                  ~ 2015.03.29
 -- |
 -- Module      :  Data.Number.Transfinite
 -- Copyright   :  Copyright (c) 2007--2015 wren gayle romano
@@ -179,8 +177,6 @@ instance Transfinite Float where
 -- be noted in case your code depends on the implementation details.
 
 log  :: (Floating a, Transfinite a) => a -> a
-{-# SPECIALIZE log :: Double -> Double #-}
-{-# SPECIALIZE log :: Float  -> Float  #-}
 {-# INLINE [0] log #-}
 -- TODO: should we use NOINLINE or [~0] to avoid the possibility of code bloat?
 log x = case x `cmp` 0 of

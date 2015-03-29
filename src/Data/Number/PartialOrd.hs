@@ -1,14 +1,16 @@
--- TODO: in GHC 7.10 OverlappingInstances is deprecated in favor
--- of per-instance OVERLAPPING/OVERLAPPABLE/OVERLAPS pragmata.
-{-# LANGUAGE OverlappingInstances
+{-# LANGUAGE CPP
            , FlexibleInstances
            , UndecidableInstances
            #-}
 
+#if __GLASGOW_HASKELL__ < 710
+{-# LANGUAGE OverlappingInstances #-}
+#endif
+
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2009.01.29
+--                                                  ~ 2015.03.29
 -- |
 -- Module      :  Data.Number.PartialOrd
 -- Copyright   :  Copyright (c) 2007--2015 wren gayle romano
@@ -110,7 +112,11 @@ class PartialOrd a where
 
 infix 4 `gt`, `ge`, `eq`, `ne`, `le`, `lt`, `maxPO`, `minPO`
 
-instance (Ord a) => PartialOrd a where
+instance
+#if __GLASGOW_HASKELL__ >= 710
+    {-# OVERLAPPABLE #-}
+#endif
+    (Ord a) => PartialOrd a where
     cmp   x y = Just $! x `compare` y
     gt    x y = Just $! x >  y
     ge    x y = Just $! x >= y
@@ -128,11 +134,19 @@ instance (Ord a) => PartialOrd a where
 -- returns @Just Eq@ for @notANumber@ then CPP was run wrongly.
 --
 -- The instances inherited from Ord are wrong. So we'll fix them.
-instance PartialOrd Float where
+instance
+#if __GLASGOW_HASKELL__ >= 710
+    {-# OVERLAPPING #-}
+#endif
+    PartialOrd Float where
     cmp x y | isNaN x || isNaN y = Nothing
             | otherwise          = Just $! x `compare` y
 
-instance PartialOrd Double where
+instance
+#if __GLASGOW_HASKELL__ >= 710
+    {-# OVERLAPPING #-}
+#endif
+    PartialOrd Double where
     cmp x y | isNaN x || isNaN y = Nothing
             | otherwise          = Just $! x `compare` y
 

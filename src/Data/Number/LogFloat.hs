@@ -2,14 +2,19 @@
 -- FFI is for log1p
 {-# LANGUAGE CPP, ForeignFunctionInterface, MultiParamTypeClasses #-}
 -- We don't put these in LANGUAGE, because it's CPP guarded for GHC only
-{-# OPTIONS_GHC -XGeneralizedNewtypeDeriving #-}
+-- HACK: ScopedTypeVariables and InstanceSigs are for GHC 7.10 only...
+{-# OPTIONS_GHC
+    -XGeneralizedNewtypeDeriving
+    -XScopedTypeVariables
+    -XInstanceSigs
+    #-}
 
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
 {-# OPTIONS_GHC -O2 -fexcess-precision -fenable-rewrite-rules #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2015.03.23
+--                                                  ~ 2015.03.24
 -- |
 -- Module      :  Data.Number.LogFloat
 -- Copyright   :  Copyright (c) 2007--2015 wren gayle romano
@@ -75,10 +80,11 @@ import Hugs.IOExts        (unsafeCoerce)
 #elif __NHC__
 import NonStdUnsafeCoerce (unsafeCoerce)
 #elif __GLASGOW_HASKELL__ >= 710
--- When we can, do...
-import Data.Coerce        (coerce)
--- When we can't, pretend.
+-- For when the *heap* representations are the same 
+--import Data.Coerce        (coerce)
+-- For when the *unboxed array* storage representations are the same
 import Unsafe.Coerce      (unsafeCoerce)
+import Data.Ix            (Ix)
 #endif
 
 #ifdef __GLASGOW_HASKELL__
@@ -142,7 +148,8 @@ newtype LogFloat = LogFloat Double
     -- them (even without GeneralizedNewtypeDeriving). However,
     -- GHC >= 7.10 can't derive @IArray UArray@ thanks to the new
     -- type-role stuff! since 'UArray' is declared to be nominal
-    -- in both arguments...
+    -- in both arguments... and that seems to be necessary:
+    -- cf., <https://ghc.haskell.org/trac/ghc/ticket/9220>
 #if __GLASGOW_HASKELL__ < 710
     , IArray UArray
 #endif
@@ -150,8 +157,40 @@ newtype LogFloat = LogFloat Double
 #endif
     )
 
+#if __GLASGOW_HASKELL__ >= 710
+-- TODO: this version should also work for NHC and Hugs, I think...
+-- HACK: we should be able to just unsafeCoerce the functions themselves, instead of coercing the inputs and the outputs; but, GHC 7.10 seems to get confused about trying to coerce the index types too... To fix this we give explicit signatures, as below, but this requires both ScopedTypeVariables and InstanceSigs; and I'm not sure when InstanceSigs was introduced.
 
-#if __HUGS__ || __NHC__ || (__GLASGOW_HASKELL__ >= 710)
+instance IArray UArray LogFloat where
+    {-# INLINE bounds #-}
+    bounds :: forall i. Ix i => UArray i LogFloat -> (i, i)
+    bounds = unsafeCoerce (bounds :: UArray i Double -> (i, i))
+    
+    {-# INLINE numElements #-}
+    numElements :: forall i. Ix i => UArray i LogFloat -> Int
+    numElements = unsafeCoerce (numElements :: UArray i Double -> Int)
+    
+    {-# INLINE unsafeArray #-}
+    unsafeArray :: forall i. Ix i => (i,i) -> [(Int,LogFloat)] -> UArray i LogFloat
+    unsafeArray = unsafeCoerce (unsafeArray :: (i,i) -> [(Int,Double)] -> UArray i Double)
+    
+    {-# INLINE unsafeAt #-}
+    unsafeAt :: forall i. Ix i => UArray i LogFloat -> Int -> LogFloat
+    unsafeAt = unsafeCoerce (unsafeAt :: UArray i Double -> Int -> Double)
+    
+    {-# INLINE unsafeReplace #-}
+    unsafeReplace :: forall i. Ix i => UArray i LogFloat -> [(Int,LogFloat)] -> UArray i LogFloat
+    unsafeReplace = unsafeCoerce (unsafeReplace :: UArray i Double -> [(Int,Double)] -> UArray i Double)
+    
+    {-# INLINE unsafeAccum #-}
+    unsafeAccum :: forall i e. Ix i => (LogFloat -> e -> LogFloat) -> UArray i LogFloat -> [(Int,e)] -> UArray i LogFloat
+    unsafeAccum = unsafeCoerce (unsafeAccum :: (Double -> e -> Double) -> UArray i Double -> [(Int,e)] -> UArray i Double)
+    
+    {-# INLINE unsafeAccumArray #-}
+    unsafeAccumArray :: forall i e. Ix i => (LogFloat -> e -> LogFloat) -> LogFloat -> (i,i) -> [(Int,e)] -> UArray i LogFloat
+    unsafeAccumArray = unsafeCoerce (unsafeAccumArray :: (Double -> e -> Double) -> Double -> (i,i) -> [(Int,e)] -> UArray i Double)
+
+#elif __HUGS__ || __NHC__
 -- TODO: Storable instance. Though Foreign.Storable isn't in Hugs(Sept06)
 
 -- These two operators make it much easier to read the instance.
@@ -176,14 +215,13 @@ logFromLFAssocs = coerce
 logFromLFAssocs = unsafeCoerce
 #endif
 
--- BUG: 'UArray' is declared to be nominal in the second type, so
--- these two are unsafe! We can use @Data.Array.Unboxed.amap coerce@,
--- provided @Ix a@, but that's the expensive thing we hoped to avoid!
+-- HACK: can't coerce, cf: <https://ghc.haskell.org/trac/ghc/ticket/9220>
 {-# INLINE logFromLFUArray #-}
 logFromLFUArray :: UArray a LogFloat -> UArray a Double
 logFromLFUArray = unsafeCoerce
 
 -- Named unsafe because it could allow injecting NaN if misused
+-- HACK: can't coerce, cf: <https://ghc.haskell.org/trac/ghc/ticket/9220>
 {-# INLINE unsafeLogToLFUArray #-}
 unsafeLogToLFUArray :: UArray a Double -> UArray a LogFloat
 unsafeLogToLFUArray = unsafeCoerce
@@ -392,7 +430,8 @@ expm1 :: Double -> Double
 expm1 x = exp x - 1
 #endif
 
-
+-- CPP guarded because they won't fire if we're using the FFI versions
+#if !defined(__USE_FFI__)
 {-# RULES
 -- Into log-domain and back out
 "expm1/log1p"    forall x. expm1 (log1p x) = x
@@ -400,6 +439,7 @@ expm1 x = exp x - 1
 -- Out of log-domain and back in
 "log1p/expm1"    forall x. log1p (expm1 x) = x
     #-}
+#endif
 
 ----------------------------------------------------------------
 -- These all work without causing underflow. However, do note that
