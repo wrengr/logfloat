@@ -1,6 +1,10 @@
+* Update this TODO file to only include things that are actually still relevant
+
+== ... ==
+
 * Use pointless-fun instead of our own definitions.
 
-* Maybe use lattice:Algebra.PartialOrd instead of out own.
+* Maybe use lattice:Algebra.PartialOrd instead of our own.
 
 * Combine the test suite into a single executable and then do:
     $> darcs setpref test "runhaskell Tests.hs"
