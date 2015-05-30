@@ -1,5 +1,5 @@
 ----------------------------------------------------------------
--- wren gayle romano <wren@community.haskell.org>   ~ 2015.03.29
+-- wren gayle romano <wren@community.haskell.org>   ~ 2015.05.30
 ----------------------------------------------------------------
 
 -- By and large Cabal >=1.2 is fine; but >= 1.6 gives tested-with:
@@ -8,7 +8,7 @@ Cabal-Version:  >= 1.6
 Build-Type:     Simple
 
 Name:           logfloat
-Version:        0.13.3
+Version:        0.13.3.1
 Stability:      experimental
 Homepage:       http://code.haskell.org/~wren/
 Author:         wren gayle romano
@@ -30,7 +30,7 @@ Description:    This module presents a type for storing numbers
 Tested-With:
     GHC == 7.8.3, GHC == 7.10.1
 Extra-source-files:
-    INSTALL, VERSION
+    INSTALL, CHANGELOG
 Source-Repository head
     Type:     darcs
     Location: http://community.haskell.org/~wren/logfloat
