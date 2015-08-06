@@ -14,7 +14,7 @@
 {-# OPTIONS_GHC -O2 -fexcess-precision -fenable-rewrite-rules #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2015.03.24
+--                                                  ~ 2015.08.06
 -- |
 -- Module      :  Data.Number.LogFloat
 -- Copyright   :  Copyright (c) 2007--2015 wren gayle romano
@@ -46,7 +46,7 @@ module Data.Number.LogFloat
       module Data.Number.Transfinite
     
     -- * @LogFloat@ data type
-    , LogFloat
+    , LogFloat()
     -- ** Isomorphism to normal-domain
     , logFloat
     , fromLogFloat
@@ -365,9 +365,12 @@ logFromLogFloat (LogFloat x) = x
 -- log-domain value instead.
 
 instance Show LogFloat where
-    show (LogFloat x) =
-        let y = exp x
-        in  y `seq` "LogFloat "++show y
+    showsPrec p (LogFloat x) =
+        let y = exp x in y `seq`
+        showParen (p > 9)
+            ( showString "logFloat "
+            . showsPrec 11 y
+            )
 
 
 ----------------------------------------------------------------
