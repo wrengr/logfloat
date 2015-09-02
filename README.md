@@ -163,7 +163,7 @@ broken in Cabal 1.8 (including at least 1.8.0.2 through 1.8.0.6):
     http://hackage.haskell.org/trac/hackage/ticket/633
 
 
-## Changes: Version 0.13.3+ (2015-03-29): vs 0.12.1 (2010-03-19)
+## Changes: Version 0.13.3+ (2015-03-29) vs 0.12.1 (2010-03-19)
 
 * Monomorphized `logFloat`, `logToLogFloat`, `fromLogFloat`, and
 `logFromLogFloat`: that is, they all take/return `Double` now. The
