@@ -74,14 +74,36 @@ bug report (which is resolved in GHC 6.10.2):
 
 ### Windows FFI
 
-The logfloat package builds and installs cleanly on Windows XP using
-GHC 6.10.1 (without needing Cygwin nor Mingw/Msys). The C functions
-reside in libmingwex.a which is bundled with GHC on WinXP.
+The logfloat package builds and installs cleanly with GHC on Windows
+(without needing Cygwin nor Mingw/Msys), and the installed package
+can be used in compiled programs without any issues.
 
-However, it does not work from the GHCi debugger and gives errors
-like "can't load .so/.DLL for: m (addDLL: could not load DLL)". If
-you know how to fix this issue or have further details on Windows
-compatability, please contact the maintainer.
+However, (by default) the package does not work from the GHCi
+debugger and gives errors like "can't load .so/.DLL for: m (addDLL:
+could not load DLL)". This is a long-standing issue with GHCi having
+to do with the fact that, on Windows, the so-called "libm" file
+does not actually contain anything (as it does on POSIX) and the C
+functions we use are instead placed in libmingwex.a (which comes
+bundled with GHC). The problem is that GHC (the compiler) knows to
+pull in libmingwex.a, whereas GHCi (the interactive debugger) does
+not. All of this is true at least as far back as Windows XP and
+GHC 6.10.1, and some more information can be found in the ticket:
+
+    https://ghc.haskell.org/trac/ghc/ticket/3242
+
+The most reliable workaround ad this point, alas, is to compile the
+library with FFI support disabled in order to be able to use it in
+GHCi, and then to recompile with FFI enabled whenever you need to
+ship a compiled program.
+
+A less-reliable workaround (i.e., needs to be tailored for your
+system based on your paths, and you'll need to have gcc installed)
+which avoids the need for recompilation is to generate the DLL
+yourself by running the following two commands and then placing the
+resulting m.dll into your path.
+
+    ar -x libmingwex.a
+	gcc -shared *.o -o m.dll
 
 
 ### Testing
