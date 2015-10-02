@@ -55,7 +55,7 @@ improve accuracy. These functions are part of the ISO C 1999 standard
 and are supported on most systems, however they're not part of the
 ANSI C standard nor the System V standard and so they might be
 unavailable on some systems. If you encounter errors during build
-about not being able to find <math.h>, not having prototypes for
+about not being able to find `<math.h>`, not having prototypes for
 functions, or linking errors, then you are probably on such a system.
 
 In order to use pure Haskell and disable the FFI, pass -f-useFFI
