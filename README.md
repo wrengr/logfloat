@@ -12,9 +12,12 @@ also provides modules for dealing with floating numbers correctly.
 
 As of version 0.13.3, we've dropped support for Hugs and GHC < 7.8.
 Nothing major has changed, so they should still work; it's just
-that they're no longer officially supported. Thus, this version of
-the library provides a transitional point between backwards
-compatability and adding new features (see below).
+that they're no longer officially supported. (In practice, GHC 7.6
+still works just fine, and is still being tested against. It's just
+that this support will be droped in the future, once it becomes a
+burden.) Thus, this version of the library provides a transitional
+point between backwards compatability and adding new features (see
+below).
 
 Note that the GitHub repository is just a clone of [the Darcs
 repo](http://code.haskell.org/~wren/logfloat/). I'm testing out

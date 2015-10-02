@@ -20,19 +20,24 @@ License:        BSD3
 License-File:   LICENSE
 
 Category:       Data, Math, Natural Language Processing, Statistics
-Synopsis:       Log-domain floating point numbers
-Description:    This module presents a type for storing numbers
-                in the log-domain. The main reason for doing this
-                is to prevent underflow when multiplying many
-                probabilities as is done in Hidden Markov Models.
-                It is also helpful for preventing overflow.
+Synopsis:
+    Log-domain floating point numbers
+Description:
+    This module presents a type for storing numbers in the log-domain.
+    The main reason for doing this is to prevent underflow when
+    multiplying many probabilities as is done in Hidden Markov
+    Models. It is also helpful for preventing overflow.
 
-
--- TODO: does GHC 6.12.1 and 7.6.1 still work? do we care?
-Tested-With:
-    GHC == 7.8.3, GHC == 7.10.1
 Extra-source-files:
     README.md, CHANGELOG
+
+-- Cf., <https://travis-ci.org/wrengr/bytestring-lexing>
+Tested-With:
+    GHC ==7.6.1, GHC ==7.6.2, GHC ==7.6.3,
+    GHC ==7.8.1, GHC ==7.8.2, GHC ==7.8.3, GHC ==7.8.4,
+    GHC ==7.10.1, GHC ==7.10.2
+
+----------------------------------------------------------------
 Source-Repository head
     Type:     darcs
     Location: http://community.haskell.org/~wren/logfloat
@@ -40,9 +45,10 @@ Source-Repository head
 ----------------------------------------------------------------
 Flag useFFI
     Default:     True
-    Description: Use FFI to link C's log1p. Improves accuracy and
-                 same performance. Disable only if your compiler
-                 doesn't support FFI.
+    Description:
+        Use FFI to link C's log1p. Improves accuracy while maintaining
+        the same performance. Disable only if your compiler doesn't
+        support FFI.
 
 ----------------------------------------------------------------
 Library
@@ -53,7 +59,7 @@ Library
                    , Data.Number.PartialOrd
                    , Hugs.RealFloat
     
-    Build-Depends: base  == 4.*
+    Build-Depends: base  >= 4.6 && < 5
                  -- TODO: do we need any version constraints on array?
                  , array
     
