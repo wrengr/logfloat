@@ -54,6 +54,7 @@ env:
   - CABALVER=1.16 GHCVER=7.6.1  # base-4.6.0.0, bytestring-0.10.0.0
   - CABALVER=1.16 GHCVER=7.6.2  # base-4.6.0.1, bytestring-0.10.0.2
   - CABALVER=1.18 GHCVER=7.6.3  # --''--
+  # dropped support for everything older than ghc-7.8... according to the README
   - CABALVER=1.18 GHCVER=7.8.1  # base-4.7.0.0, bytestring-0.10.4.0
   - CABALVER=1.18 GHCVER=7.8.2  # --''--
   - CABALVER=1.18 GHCVER=7.8.3  # base-4.7.0.1, --''--
