@@ -1,8 +1,8 @@
 logfloat
 ========
-[![Hackage version](https://img.shields.io/hackage/v/logfloat.svg?style=flat)](https://hackage.haskell.org/package/logfloat) 
+[![Hackage version](https://img.shields.io/hackage/v/logfloat.svg?style=flat)](https://hackage.haskell.org/package/logfloat)
 [![Hackage-Deps](https://img.shields.io/hackage-deps/v/logfloat.svg?style=flat)](http://packdeps.haskellers.com/specific?package=logfloat)
-[![TravisCI Build Status](https://img.shields.io/travis/wrengr/logfloat.svg?style=flat)](https://travis-ci.org/wrengr/logfloat) 
+[![TravisCI Build Status](https://img.shields.io/travis/wrengr/logfloat.svg?style=flat)](https://travis-ci.org/wrengr/logfloat)
 [![CircleCI Build Status](https://circleci.com/gh/wrengr/logfloat.svg?style=shield&circle-token=b57517657c556be6fd8fca92b843f9e4cffaf8d1)](https://circleci.com/gh/wrengr/logfloat)
 
 This package provides a type for storing numbers in the log-domain,
@@ -35,11 +35,11 @@ of the following standard installation methods:
 
     -- With cabal-install and without the source:
     $> cabal install logfloat
-    
+
     -- With cabal-install and with the source already:
     $> cd logfloat
     $> cabal install
-    
+
     -- Without cabal-install, but with the source already:
     $> cd logfloat
     $> runhaskell Setup.hs configure --user
@@ -77,14 +77,15 @@ bug report (which is resolved in GHC 6.10.2):
 
 ### Windows FFI
 
-The logfloat package builds and installs cleanly with GHC on Windows
-(without needing Cygwin nor Mingw/Msys), and the installed package
-can be used in compiled programs without any issues.
+The logfloat package builds and installs cleanly with GHC 8.0 and
+later on Windows (without needing Cygwin nor Mingw/Msys), and the
+installed package can be used in compiled programs without any
+issues.
 
-However, by default, the package does not work from the GHCi debugger
-and gives errors like "can't load .so/.DLL for: m (addDLL: could
-not load DLL)". This is a long-standing issue with GHCi having to
-do with the fact that, on Windows, the so-called "libm" file does
+Prior to GHC 8.0, the package does not work from the GHCi debugger
+by default and gives errors like "can't load .so/.DLL for: m (addDLL:
+could not load DLL)". This is a long-standing issue with GHCi having
+to do with the fact that, on Windows, the so-called "libm" file does
 not actually contain anything (as it does on POSIX) and the C
 functions we use are instead placed in `libmingwex.a` (which comes
 bundled with GHC). The problem is that `ghc` (the compiler) knows
@@ -168,7 +169,7 @@ If you need to disable the FFI due to issues with not being able
 to find <math.h>, not having prototypes for functions, or linking
 errors, be sure *not* to pass -D__USE_FFI__ to the cpp filter for
 ffihugs.
-    
+
 Notably, Hugs installs cpphs under the name "cpphs-hugs" by default.
 The `which` command will try to resolve the location, assuming it's
 on your $PATH. If it isn't, then change the --with-cpphs= flag to
