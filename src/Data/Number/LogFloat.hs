@@ -14,10 +14,10 @@
 {-# OPTIONS_GHC -O2 -fexcess-precision -fenable-rewrite-rules #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2015.08.06
+--                                                  ~ 2017.06.18
 -- |
 -- Module      :  Data.Number.LogFloat
--- Copyright   :  Copyright (c) 2007--2015 wren gayle romano
+-- Copyright   :  Copyright (c) 2007--2017 wren gayle romano
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
 -- Stability   :  stable
@@ -44,7 +44,7 @@ module Data.Number.LogFloat
     (
     -- * Exceptional numeric values
       module Data.Number.Transfinite
-    
+
     -- * @LogFloat@ data type
     , LogFloat()
     -- ** Isomorphism to normal-domain
@@ -56,7 +56,7 @@ module Data.Number.LogFloat
     -- ** Additional operations
     , sum, product
     , pow
-    
+
     -- * Accurate versions of logarithm\/exponentiation
     , log1p, expm1
     ) where
@@ -80,7 +80,7 @@ import Hugs.IOExts        (unsafeCoerce)
 #elif __NHC__
 import NonStdUnsafeCoerce (unsafeCoerce)
 #elif __GLASGOW_HASKELL__ >= 710
--- For when the *heap* representations are the same 
+-- For when the *heap* representations are the same
 --import Data.Coerce        (coerce)
 -- For when the *unboxed array* storage representations are the same
 import Unsafe.Coerce      (unsafeCoerce)
@@ -98,6 +98,9 @@ import Foreign.Storable (Storable)
 -- in order to ensure semantic conversion. At present the 'Show'
 -- instance will convert back to the normal-domain, and hence will
 -- underflow at that point. This behavior may change in the future.
+-- At present, the 'Read' instance parses things in the normal-domain
+-- and then converts them to the log-domain. Again, this behavior
+-- may change in the future.
 --
 -- Because 'logFloat' performs the semantic conversion, we can use
 -- operators which say what we *mean* rather than saying what we're
@@ -165,27 +168,27 @@ instance IArray UArray LogFloat where
     {-# INLINE bounds #-}
     bounds :: forall i. Ix i => UArray i LogFloat -> (i, i)
     bounds = unsafeCoerce (bounds :: UArray i Double -> (i, i))
-    
+
     {-# INLINE numElements #-}
     numElements :: forall i. Ix i => UArray i LogFloat -> Int
     numElements = unsafeCoerce (numElements :: UArray i Double -> Int)
-    
+
     {-# INLINE unsafeArray #-}
     unsafeArray :: forall i. Ix i => (i,i) -> [(Int,LogFloat)] -> UArray i LogFloat
     unsafeArray = unsafeCoerce (unsafeArray :: (i,i) -> [(Int,Double)] -> UArray i Double)
-    
+
     {-# INLINE unsafeAt #-}
     unsafeAt :: forall i. Ix i => UArray i LogFloat -> Int -> LogFloat
     unsafeAt = unsafeCoerce (unsafeAt :: UArray i Double -> Int -> Double)
-    
+
     {-# INLINE unsafeReplace #-}
     unsafeReplace :: forall i. Ix i => UArray i LogFloat -> [(Int,LogFloat)] -> UArray i LogFloat
     unsafeReplace = unsafeCoerce (unsafeReplace :: UArray i Double -> [(Int,Double)] -> UArray i Double)
-    
+
     {-# INLINE unsafeAccum #-}
     unsafeAccum :: forall i e. Ix i => (LogFloat -> e -> LogFloat) -> UArray i LogFloat -> [(Int,e)] -> UArray i LogFloat
     unsafeAccum = unsafeCoerce (unsafeAccum :: (Double -> e -> Double) -> UArray i Double -> [(Int,e)] -> UArray i Double)
-    
+
     {-# INLINE unsafeAccumArray #-}
     unsafeAccumArray :: forall i e. Ix i => (LogFloat -> e -> LogFloat) -> LogFloat -> (i,i) -> [(Int,e)] -> UArray i LogFloat
     unsafeAccumArray = unsafeCoerce (unsafeAccumArray :: (Double -> e -> Double) -> Double -> (i,i) -> [(Int,e)] -> UArray i Double)
@@ -241,30 +244,30 @@ unsafeLogToLogFloat = LogFloat
 instance IArray UArray LogFloat where
     {-# INLINE bounds #-}
     bounds = bounds . logFromLFUArray
-    
+
 -- Apparently this method was added in base-2.0/GHC-6.6 but Hugs
 -- (Sept 2006) doesn't have it. Not sure about NHC's base
 #if (!(defined(__HUGS__))) || (__HUGS__ > 200609)
     {-# INLINE numElements #-}
     numElements = numElements . logFromLFUArray
 #endif
-    
+
     {-# INLINE unsafeArray #-}
     unsafeArray =
         unsafeArray $:: id ~> logFromLFAssocs ~> unsafeLogToLFUArray
-    
+
     {-# INLINE unsafeAt #-}
     unsafeAt =
         unsafeAt $:: logFromLFUArray ~> id ~> unsafeLogToLogFloat
-    
+
     {-# INLINE unsafeReplace #-}
     unsafeReplace =
         unsafeReplace $:: logFromLFUArray ~> logFromLFAssocs ~> unsafeLogToLFUArray
-    
+
     {-# INLINE unsafeAccum #-}
     unsafeAccum =
         unsafeAccum $:: unsafeLogToLFFunc ~> logFromLFUArray ~> id ~> unsafeLogToLFUArray
-    
+
     {-# INLINE unsafeAccumArray #-}
     unsafeAccumArray =
         unsafeAccumArray $:: unsafeLogToLFFunc ~> logFromLogFloat ~> id ~> id ~> unsafeLogToLFUArray
@@ -278,6 +281,9 @@ instance PartialOrd LogFloat where
         | isNaN x || isNaN y = Nothing
         | otherwise          = Just $! x `compare` y
 
+instance Read LogFloat where
+    readsPrec p s =
+        [(LogFloat (log x), r) | (x, r) <- readsPrec p s, not (isNaN x), x >= 0]
 
 ----------------------------------------------------------------
 -- | Reduce the number of constant string literals we need to store.
@@ -458,20 +464,20 @@ instance Num LogFloat where
     --      either isNaN. This does not constitute a bug since we
     --      maintain the invariant that values wrapped by 'LogFloat'
     --      are not NaN.
-    
+
     (*) (LogFloat x) (LogFloat y)
         |    isInfinite x
           && isInfinite y
           && x == negate y = LogFloat negativeInfinity -- @0*infinity == 0@
         | otherwise        = LogFloat (x+y)
-    
+
     (+) (LogFloat x) (LogFloat y)
         | x == y
           && isInfinite x
           && isInfinite y = LogFloat x -- @0+0 == 0@, @infinity+infinity == infinity@
         | x >= y          = LogFloat (x + log1p (exp (y - x)))
         | otherwise       = LogFloat (y + log1p (exp (x - y)))
-    
+
     (-) (LogFloat x) (LogFloat y)
         |    x == negativeInfinity
           && y == negativeInfinity = LogFloat negativeInfinity -- @0-0 == 0@
@@ -480,7 +486,7 @@ instance Num LogFloat where
             -- TODO: flip @x@ and @y@ when @y > x@.
             -- Also, will throw error if (x,y) is (infinity,infinity)
             LogFloat (guardIsANumber "(-)" (x + log1p (negate (exp (y - x)))))
-    
+
     signum (LogFloat x)
         | x == negativeInfinity = 0
         | x >  negativeInfinity = 1
@@ -489,11 +495,11 @@ instance Num LogFloat where
         -- broke the invariant. That shouldn't be possible and
         -- so noone else bothers to check, but we check here just
         -- in case.
-    
+
     negate _    = errorOutOfRange "negate"
-    
+
     abs         = id
-    
+
     fromInteger = LogFloat . log
                 . guardNonNegative "fromInteger" . fromInteger
 
@@ -507,7 +513,7 @@ instance Fractional LogFloat where
           && isInfinite y       = errorOutOfRange "(/)"
         | x == negativeInfinity = LogFloat negativeInfinity -- @0/infinity == 0@
         | otherwise             = LogFloat (x-y)
-    
+
     fromRational = LogFloat . log
                  . guardNonNegative "fromRational" . fromRational
 
@@ -577,7 +583,7 @@ sum :: [LogFloat] -> LogFloat
 sum xs = LogFloat (theMax + log theSum)
     where
     LogFloat theMax = maximum xs
-    
+
     -- compute @\log \sum_{x \in xs} \exp(x - theMax)@
     theSum = foldl' (\ acc (LogFloat x) -> acc + exp (x - theMax)) 0 xs
 
