@@ -162,7 +162,12 @@ newtype LogFloat = LogFloat Double
 
 #if __GLASGOW_HASKELL__ >= 710
 -- TODO: this version should also work for NHC and Hugs, I think...
--- HACK: we should be able to just unsafeCoerce the functions themselves, instead of coercing the inputs and the outputs; but, GHC 7.10 seems to get confused about trying to coerce the index types too... To fix this we give explicit signatures, as below, but this requires both ScopedTypeVariables and InstanceSigs; and I'm not sure when InstanceSigs was introduced.
+-- HACK: we should be able to just unsafeCoerce the functions
+-- themselves, instead of coercing the inputs and the outputs; but,
+-- GHC 7.10 seems to get confused about trying to coerce the index
+-- types too... To fix this we give explicit signatures, as below,
+-- but this requires both ScopedTypeVariables and InstanceSigs; and
+-- I'm not sure when InstanceSigs was introduced.
 
 instance IArray UArray LogFloat where
     {-# INLINE bounds #-}
@@ -606,12 +611,17 @@ product = kahan 0 0
     where
     kahan t c _ | t `seq` c `seq` False = undefined
     kahan t _ []                = LogFloat t
-    kahan t c (LogFloat x : xs) =
-        -- Beware this getting incorrectly optimized away by constant folding!
-        let y  = x - c
-            t' = t + y
-            c' = (t' - t) - y
-        in kahan t' c' xs
+    kahan t c (LogFloat x : xs)
+        -- Avoid NaN when there's a negInfty in the list. N.B.,
+        -- this causes zero to annihilate infinity.
+        | x == negativeInfinity = LogFloat negativeInfinity
+        | otherwise =
+            -- Beware this getting incorrectly optimized away by
+            -- constant folding!
+            let y  = x - c
+                t' = t + y
+                c' = (t' - t) - y
+            in kahan t' c' xs
 
 -- This version *completely* eliminates rounding errors and loss
 -- of significance due to catastrophic cancellation during summation.
