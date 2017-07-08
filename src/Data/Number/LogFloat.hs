@@ -63,6 +63,7 @@ module Data.Number.LogFloat
 
 import Prelude hiding (log, sum, product, isInfinite, isNaN)
 import Data.List (foldl')
+import Data.Ratio (numerator, denominator)
 
 import Data.Number.Transfinite
 import Data.Number.PartialOrd
@@ -505,8 +506,17 @@ instance Num LogFloat where
 
     abs         = id
 
-    fromInteger = LogFloat . log
-                . guardNonNegative "fromInteger" . fromInteger
+    -- Doubles can comfortably hold up to about 1e300, so convert in that base.
+    fromInteger n
+        | n < 0     = errorOutOfRange "fromInteger"
+        | otherwise = go n
+        where
+        baseInt  = (10 :: Integer) ^ (300 :: Int)
+        baseLF   = unsafeFromInteger baseInt
+        unsafeFromInteger = LogFloat . log . fromInteger
+        go 0 = unsafeFromInteger 0
+        go v = case v `quotRem` baseInt of
+            (q, r) -> fromInteger q * baseLF + unsafeFromInteger r
 
 
 instance Fractional LogFloat where
@@ -519,8 +529,9 @@ instance Fractional LogFloat where
         | x == negativeInfinity = LogFloat negativeInfinity -- @0/infinity == 0@
         | otherwise             = LogFloat (x-y)
 
-    fromRational = LogFloat . log
-                 . guardNonNegative "fromRational" . fromRational
+    fromRational r
+        | r < 0 = errorOutOfRange "fromRational"
+        | otherwise = fromInteger (numerator r) / fromInteger (denominator r)
 
 
 -- Just for fun. The more coercion functions the better. Though
