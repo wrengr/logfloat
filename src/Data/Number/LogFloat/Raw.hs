@@ -14,10 +14,12 @@
 --
 -- This module provides implementations for computing various
 -- logarithmic and exponential functions without losing precision
--- (as the naive implementations do). Since we can't rely on types
--- to clarify things, we use the traditional baroque names for
--- things. The design considerations behind (most of) these
--- implementations are documented at:
+-- (as the naive implementations do). These are the \"raw\"
+-- implementations; i.e., sans newtypes and other conveniences.
+-- Since the lack of newtypes means we can't rely on types to clarify
+-- things, we use the traditional baroque names for things. The
+-- design considerations behind (most of) these implementations are
+-- documented at:
 -- <https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf>
 --
 -- In base-4.9.0.0 GHC added some of these to the 'Floating' class
@@ -32,18 +34,23 @@
 -- /Since: 0.14.0/
 ----------------------------------------------------------------
 module LogDomain
-    ( expm1
+    (
+    -- * Logarithmic\/exponential basics
+      expm1
     , log1p
     , log1mexp
     , log1pexp
-    , sigmoid
-    , logit
-    , logitExp
+    -- * Summation
     , logSumExp
     , kahanSum
     , neumaierSum
+    -- * Softmax
     , logSoftmax
     , softmax
+    -- * Sigmoid and related functions
+    , sigmoid
+    , logit
+    , logitExp
     ) where
 
 import Data.List (foldl')
@@ -72,7 +79,8 @@ log1mexp x
 {-# INLINE log1mexp #-}
 
 
--- | Compute @log (1 + exp x)@ without losing precision.
+-- | Compute @log (1 + exp x)@ without losing precision. Algebraically
+-- this is @0 ⊔ x@, which is the log-domain's analogue of @1 + x@.
 log1pexp :: Double -> Double
 log1pexp x
     | x <= -37  = exp x
@@ -118,6 +126,9 @@ logitExp x = x - log1mexp x
 -- implementation with respect to the 'logit' implementation.
 
 
+-- TODO: double check that everything inlines away, so this data
+-- type doesn't introduce any slowdown.
+--
 -- | A helper type for 'logSumExp'. As a semigroup, this is isomorphic to:
 -- @(WrappedMonoid (Sum Int), Max Double)@; however, we strictify and
 -- flatten everything to improve performance.
@@ -136,6 +147,8 @@ foldLSE = foldl' step . LSE 0
 
 
 -- | /O(n)/. Log-domain summation, aka: @(log . sum . fmap exp)@.
+-- Algebraically this is @⨆ xs@, which is the log-domain equivalent
+-- of @∑ xs@.
 --
 -- N.B., this requires two passes over the data: one for computing the
 -- length and maximum, and one for the summation itself.
@@ -155,7 +168,6 @@ logSumExp xs0@(x:xs) =
             -- TODO: does that 'fmap' properly fuse into the
             -- 'kahanSum', or need we inline it ourselves?
             m + log1p (fromIntegral lm1 + kahanSum (fmap (expm1 . subtract m) xs0))
-
 
 {-
 -- TODO(wrengr): Compare precision of the following implementations.
