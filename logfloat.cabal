@@ -1,5 +1,5 @@
 ----------------------------------------------------------------
--- wren gayle romano <wren@community.haskell.org>   ~ 2017.06.18
+-- wren gayle romano <wren@community.haskell.org>   ~ 2017.12.10
 ----------------------------------------------------------------
 
 -- By and large Cabal >=1.2 is fine; but
@@ -10,7 +10,7 @@ Cabal-Version:  >= 1.9.2
 Build-Type:     Simple
 
 Name:           logfloat
-Version:        0.13.4
+Version:        0.14.0
 Stability:      experimental
 Homepage:       http://code.haskell.org/~wren/
 Author:         wren gayle romano
@@ -42,6 +42,12 @@ Source-Repository head
     Type:     darcs
     Location: http://community.haskell.org/~wren/logfloat
 
+-- This repo is a clone of the Darcs one, but alas Cabal has no
+-- provisions for that sort of thing.
+--Source-Repository head
+--Type:     git
+--Location: git://github.com/wrengr/logfloat.git
+
 ----------------------------------------------------------------
 Flag useFFI
     Default:     True
@@ -54,6 +60,7 @@ Flag useFFI
 Library
     Hs-Source-Dirs:  src
     Exposed-Modules: Data.Number.LogFloat
+                   , Data.Number.LogFloat.Raw
                    , Data.Number.RealToFrac
                    , Data.Number.Transfinite
                    , Data.Number.PartialOrd
