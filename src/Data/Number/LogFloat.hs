@@ -14,7 +14,7 @@
 {-# OPTIONS_GHC -O2 -fexcess-precision -fenable-rewrite-rules #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2017.06.18
+--                                                  ~ 2017.12.11
 -- |
 -- Module      :  Data.Number.LogFloat
 -- Copyright   :  Copyright (c) 2007--2017 wren gayle romano
@@ -66,6 +66,7 @@ import Data.List (foldl')
 
 import Data.Number.Transfinite
 import Data.Number.PartialOrd
+import Data.Number.LogFloat.Raw
 
 
 -- GHC can derive (IArray UArray LogFloat), but Hugs needs to coerce
@@ -103,7 +104,7 @@ import Foreign.Storable (Storable)
 -- may change in the future.
 --
 -- Because 'logFloat' performs the semantic conversion, we can use
--- operators which say what we *mean* rather than saying what we're
+-- operators which say what we /mean/ rather than saying what we're
 -- actually doing to the underlying representation. That is,
 -- equivalences like the following are true[1] thanks to type-class
 -- overloading:
@@ -179,28 +180,44 @@ instance IArray UArray LogFloat where
     numElements = unsafeCoerce (numElements :: UArray i Double -> Int)
 
     {-# INLINE unsafeArray #-}
-    unsafeArray :: forall i. Ix i => (i,i) -> [(Int,LogFloat)] -> UArray i LogFloat
-    unsafeArray = unsafeCoerce (unsafeArray :: (i,i) -> [(Int,Double)] -> UArray i Double)
+    unsafeArray
+        :: forall i. Ix i => (i,i) -> [(Int,LogFloat)] -> UArray i LogFloat
+    unsafeArray = unsafeCoerce (unsafeArray
+        :: (i,i) -> [(Int,Double)] -> UArray i Double)
 
     {-# INLINE unsafeAt #-}
     unsafeAt :: forall i. Ix i => UArray i LogFloat -> Int -> LogFloat
     unsafeAt = unsafeCoerce (unsafeAt :: UArray i Double -> Int -> Double)
 
     {-# INLINE unsafeReplace #-}
-    unsafeReplace :: forall i. Ix i => UArray i LogFloat -> [(Int,LogFloat)] -> UArray i LogFloat
-    unsafeReplace = unsafeCoerce (unsafeReplace :: UArray i Double -> [(Int,Double)] -> UArray i Double)
+    unsafeReplace
+        :: forall i. Ix i
+        => UArray i LogFloat -> [(Int,LogFloat)] -> UArray i LogFloat
+    unsafeReplace = unsafeCoerce (unsafeReplace
+        :: UArray i Double -> [(Int,Double)] -> UArray i Double)
 
     {-# INLINE unsafeAccum #-}
-    unsafeAccum :: forall i e. Ix i => (LogFloat -> e -> LogFloat) -> UArray i LogFloat -> [(Int,e)] -> UArray i LogFloat
-    unsafeAccum = unsafeCoerce (unsafeAccum :: (Double -> e -> Double) -> UArray i Double -> [(Int,e)] -> UArray i Double)
+    unsafeAccum
+        :: forall i e. Ix i
+        => (LogFloat -> e -> LogFloat)
+        -> UArray i LogFloat -> [(Int,e)] -> UArray i LogFloat
+    unsafeAccum = unsafeCoerce (unsafeAccum
+        :: (Double -> e -> Double)
+        -> UArray i Double -> [(Int,e)] -> UArray i Double)
 
     {-# INLINE unsafeAccumArray #-}
-    unsafeAccumArray :: forall i e. Ix i => (LogFloat -> e -> LogFloat) -> LogFloat -> (i,i) -> [(Int,e)] -> UArray i LogFloat
-    unsafeAccumArray = unsafeCoerce (unsafeAccumArray :: (Double -> e -> Double) -> Double -> (i,i) -> [(Int,e)] -> UArray i Double)
+    unsafeAccumArray
+        :: forall i e. Ix i
+        => (LogFloat -> e -> LogFloat)
+        -> LogFloat -> (i,i) -> [(Int,e)] -> UArray i LogFloat
+    unsafeAccumArray = unsafeCoerce (unsafeAccumArray
+        :: (Double -> e -> Double)
+        -> Double -> (i,i) -> [(Int,e)] -> UArray i Double)
 
 #elif __HUGS__ || __NHC__
 -- TODO: Storable instance. Though Foreign.Storable isn't in Hugs(Sept06)
 
+-- TODO: depend on my @pointless-fun@ package rather than repeating things here...
 -- These two operators make it much easier to read the instance.
 -- Hopefully inlining everything will get rid of the eta overhead.
 -- <http://matt.immute.net/content/pointless-fun>
@@ -258,28 +275,26 @@ instance IArray UArray LogFloat where
 #endif
 
     {-# INLINE unsafeArray #-}
-    unsafeArray =
-        unsafeArray $:: id ~> logFromLFAssocs ~> unsafeLogToLFUArray
+    unsafeArray = unsafeArray $:: id ~> logFromLFAssocs ~> unsafeLogToLFUArray
 
     {-# INLINE unsafeAt #-}
-    unsafeAt =
-        unsafeAt $:: logFromLFUArray ~> id ~> unsafeLogToLogFloat
+    unsafeAt = unsafeAt $:: logFromLFUArray ~> id ~> unsafeLogToLogFloat
 
     {-# INLINE unsafeReplace #-}
-    unsafeReplace =
-        unsafeReplace $:: logFromLFUArray ~> logFromLFAssocs ~> unsafeLogToLFUArray
+    unsafeReplace = unsafeReplace
+        $:: logFromLFUArray ~> logFromLFAssocs ~> unsafeLogToLFUArray
 
     {-# INLINE unsafeAccum #-}
-    unsafeAccum =
-        unsafeAccum $:: unsafeLogToLFFunc ~> logFromLFUArray ~> id ~> unsafeLogToLFUArray
+    unsafeAccum = unsafeAccum
+        $:: unsafeLogToLFFunc ~> logFromLFUArray ~> id ~> unsafeLogToLFUArray
 
     {-# INLINE unsafeAccumArray #-}
-    unsafeAccumArray =
-        unsafeAccumArray $:: unsafeLogToLFFunc ~> logFromLogFloat ~> id ~> id ~> unsafeLogToLFUArray
+    unsafeAccumArray = unsafeAccumArray
+        $:: unsafeLogToLFFunc ~> logFromLogFloat ~> id ~> id ~> unsafeLogToLFUArray
 #endif
 
 -- TODO: the Nothing branch should never be reachable. Once we get
--- a test suite up and going to *verify* the never-NaN invariant,
+-- a test suite up and going to /verify/ the never-NaN invariant,
 -- we should be able to eliminate the branch and the isNaN checks.
 instance PartialOrd LogFloat where
     cmp (LogFloat x) (LogFloat y)
@@ -385,77 +400,34 @@ instance Show LogFloat where
 
 
 ----------------------------------------------------------------
--- Technically these should use 'Foreign.C.CDouble' however there's
--- no isomorphism provided to normal 'Double'. The former is
--- documented as being a newtype of the later, and so this should
--- be safe.
-
-#ifdef __USE_FFI__
-#define LOG1P_WHICH_VERSION FFI version.
-#else
-#define LOG1P_WHICH_VERSION naive version! \
-    Contact the maintainer with any FFI difficulties.
-#endif
-
-
--- | Definition: @log1p == log . (1+)@. Standard C libraries provide
--- a special definition for 'log1p' which is more accurate than
--- doing the naive thing, especially for very small arguments. For
--- example, the naive version underflows around @2 ** -53@, whereas
--- the specialized version underflows around @2 ** -1074@. This
--- function is used by ('+') and ('-') on @LogFloat@.
+-- | A curried function for converting arbitrary pairs into ordered
+-- pairs. The continuation recieves the minimum first and the maximum
+-- second.
 --
--- N.B. The @statistics:Statistics.Math@ module provides a pure
--- Haskell implementation of @log1p@ for those who are interested.
--- We do not copy it here because it relies on the @vector@ package
--- which is non-portable. If there is sufficient interest, a portable
--- variant of that implementation could be made. Contact the
--- maintainer if the FFI and naive implementations are insufficient
--- for your needs.
+-- This combinator is primarily intended to reduce repetition in
+-- the source code; but hopefully it should also help reduce bloat
+-- in the compiled code, by sharing the continuation and just
+-- swapping the variables in place. Of course, if the continuation
+-- is very small, then requiring a join point after the conditional
+-- swap may end up being more expensive than simply duplicating the
+-- continuation. Also, given as we're inlining it, I'm not sure
+-- whether GHC will decide to keep the sharing we introduced or
+-- whether it'll end up duplicating the continuation into the two
+-- call sites.
+ordered :: Ord a => a -> a -> (a -> a -> b) -> b
+ordered x y k
+    | x <= y    = k x y
+    | otherwise = k y x
+    -- N.B., the implementation of @(>=)@ in Hugs (Sept2006) will
+    -- always returns True if either argument isNaN. This does not
+    -- constitute a bug for us, since we maintain the invariant that
+    -- values wrapped by 'LogFloat' are not NaN.
+{-# INLINE ordered #-}
+
+
+-- TODO: Do we need to add explicit INLINE pragmas here? Or will
+-- GHC automatically see that they're small enough to want inlining?
 --
--- /This installation was compiled to use the LOG1P_WHICH_VERSION/
-
-#ifdef __USE_FFI__
-foreign import ccall unsafe "math.h log1p"
-    log1p :: Double -> Double
-#else
--- See statistics:Statistics.Math for a more accurate Haskell
--- implementation.
-log1p :: Double -> Double
-{-# INLINE [0] log1p #-}
-log1p x = log (1 + x)
-#endif
-
-
--- | Definition: @expm1 == subtract 1 . exp@. Standard C libraries
--- provide a special definition for 'expm1' which is more accurate
--- than doing the naive thing, especially for very small arguments.
--- This function isn't needed internally, but is provided for
--- symmetry with 'log1p'.
---
--- /This installation was compiled to use the LOG1P_WHICH_VERSION/
-
-#ifdef __USE_FFI__
-foreign import ccall unsafe "math.h expm1"
-    expm1 :: Double -> Double
-#else
-expm1 :: Double -> Double
-{-# INLINE [0] expm1 #-}
-expm1 x = exp x - 1
-#endif
-
--- CPP guarded because they won't fire if we're using the FFI versions
-#if !defined(__USE_FFI__)
-{-# RULES
--- Into log-domain and back out
-"expm1/log1p"    forall x. expm1 (log1p x) = x
-
--- Out of log-domain and back in
-"log1p/expm1"    forall x. log1p (expm1 x) = x
-    #-}
-#endif
-
-----------------------------------------------------------------
 -- These all work without causing underflow. However, do note that
 -- they tend to induce more of the floating-point fuzz than using
 -- regular floating numbers because @exp . log@ doesn't really equal
@@ -463,34 +435,32 @@ expm1 x = exp x - 1
 -- multiplying many small numbers (and preventing overflow for
 -- multiplying many large numbers) so we're not too worried about
 -- +\/- 4e-16.
-
 instance Num LogFloat where
-    -- N.B. In Hugs (Sept2006) the (>=) always returns True if
-    --      either isNaN. This does not constitute a bug since we
-    --      maintain the invariant that values wrapped by 'LogFloat'
-    --      are not NaN.
-
     (*) (LogFloat x) (LogFloat y)
-        |    isInfinite x
-          && isInfinite y
-          && x == negate y = LogFloat negativeInfinity -- @0*infinity == 0@
-        | otherwise        = LogFloat (x+y)
+        | isInfinite x && isInfinite y && x == negate y =
+            LogFloat negativeInfinity -- @0 * infinity == 0@
+        | otherwise =
+            -- This includes the @0 * 0 == 0@ and @infty * infty == infty@
+            -- cases, since @(+)@ treats them appropriately.
+            LogFloat (x + y)
 
     (+) (LogFloat x) (LogFloat y)
-        | x == y
-          && isInfinite x
-          && isInfinite y = LogFloat x -- @0+0 == 0@, @infinity+infinity == infinity@
-        | x >= y          = LogFloat (x + log1p (exp (y - x)))
-        | otherwise       = LogFloat (y + log1p (exp (x - y)))
-
-    (-) (LogFloat x) (LogFloat y)
-        |    x == negativeInfinity
-          && y == negativeInfinity = LogFloat negativeInfinity -- @0-0 == 0@
+        | isInfinite x && isInfinite y && x == y =
+            LogFloat x -- @0 + 0 == 0@ and @infty + infty == infty@
         | otherwise =
-            -- BUG: Will throw error if x < y
-            -- TODO: flip @x@ and @y@ when @y > x@.
-            -- Also, will throw error if (x,y) is (infinity,infinity)
-            LogFloat (guardIsANumber "(-)" (x + log1p (negate (exp (y - x)))))
+            -- This includes the @0 + infinity == infinity@ case,
+            -- since 'log1pexp' (and 'ordered') treats them appropriately.
+            ordered x y $ \n m ->
+            LogFloat (m + log1pexp (n - m))
+
+    -- TODO: give a better error message in the (infinity,infinity) case.
+    -- TODO: does 'log1mexp' handle the (+infty,-infty) cases correctly?
+    (-) (LogFloat x) (LogFloat y)
+        | x == negativeInfinity && y == negativeInfinity =
+            LogFloat negativeInfinity -- @0 - 0 == 0@
+        | otherwise =
+            ordered x y $ \n m ->
+            LogFloat (guardIsANumber "(-)" (m + log1mexp (n - m)))
 
     signum (LogFloat x)
         | x == negativeInfinity = 0
@@ -500,24 +470,20 @@ instance Num LogFloat where
         -- broke the invariant. That shouldn't be possible and
         -- so noone else bothers to check, but we check here just
         -- in case.
+        -- TODO: wouldn't @not (isNaN x)@ be a better guard to use?
 
     negate _    = errorOutOfRange "negate"
-
     abs         = id
-
-    fromInteger = LogFloat . log
-                . guardNonNegative "fromInteger" . fromInteger
+    fromInteger = LogFloat . log . guardNonNegative "fromInteger" . fromInteger
 
 
 instance Fractional LogFloat where
-    -- n/0 == infinity is handled seamlessly for us. We must catch
-    -- 0/0 and infinity/infinity NaNs, and handle 0/infinity.
+    -- @n / 0 == infinity@ is handled seamlessly for us. We must catch
+    -- @0 / 0@ and @infinity / infinity@ NaNs, and handle @0 / infinity@.
     (/) (LogFloat x) (LogFloat y)
-        | x == y
-          && isInfinite x
-          && isInfinite y       = errorOutOfRange "(/)"
+        | isInfinite x && isInfinite y && x == y = errorOutOfRange "(/)"
         | x == negativeInfinity = LogFloat negativeInfinity -- @0/infinity == 0@
-        | otherwise             = LogFloat (x-y)
+        | otherwise             = LogFloat (x - y)
 
     fromRational = LogFloat . log
                  . guardNonNegative "fromRational" . fromRational
@@ -585,17 +551,7 @@ pow (LogFloat x) m
 --
 -- /Since: 0.13/
 sum :: [LogFloat] -> LogFloat
-sum xs = LogFloat (theMax + log theSum)
-    where
-    LogFloat theMax = maximum xs
-
-    -- compute @\log \sum_{x \in xs} \exp(x - theMax)@
-    theSum = foldl' (\ acc (LogFloat x) -> acc + exp (x - theMax)) 0 xs
-
--- TODO: expose a single-pass version for the special case where
--- the first element of the list is (promised to be) the maximum
--- element?
-
+sum = LogFloat . logSumExp . fmap logFromLogFloat
 
 
 -- | /O(n)/. Compute the product of a finite list of 'LogFloat's,
@@ -607,7 +563,10 @@ sum xs = LogFloat (theMax + log theSum)
 --
 -- /Since: 0.13/
 product :: [LogFloat] -> LogFloat
-product = kahan 0 0
+product = LogFloat . kahanSum . fmap logFromLogFloat
+-- DONOTSUBMIT: the above version loses the optimization below where we avoid NaN and short-circuit to return @LogFloat -infty@ aka 0
+{-
+    kahan 0 0
     where
     kahan t c _ | t `seq` c `seq` False = undefined
     kahan t _ []                = LogFloat t
@@ -622,41 +581,6 @@ product = kahan 0 0
                 t' = t + y
                 c' = (t' - t) - y
             in kahan t' c' xs
-
--- This version *completely* eliminates rounding errors and loss
--- of significance due to catastrophic cancellation during summation.
--- <http://code.activestate.com/recipes/393090/> Also see the other
--- implementations given there. For Python's actual C implementation,
--- see math_fsum in
--- <http://svn.python.org/view/python/trunk/Modules/mathmodule.c?view=markup>
---
--- For merely *mitigating* errors rather than completely eliminating
--- them, see <http://code.activestate.com/recipes/298339/>.
---
--- A good test case is @msum([1, 1e100, 1, -1e100] * 10000) == 20000.0@
-{-
--- For proof of correctness, see
--- <www-2.cs.cmu.edu/afs/cs/project/quake/public/papers/robust-arithmetic.ps>
-def msum(xs):
-    partials = [] # sorted, non-overlapping partial sums
-    # N.B., the actual C implementation uses a 32 array, doubling size as needed
-    for x in xs:
-        i = 0
-        for y in partials: # for(i = j = 0; j < n; j++)
-            if abs(x) < abs(y):
-                x, y = y, x
-            hi = x + y
-            lo = y - (hi - x)
-            if lo != 0.0:
-                partials[i] = lo
-                i += 1
-            x = hi
-        # does an append of x while dropping all the partials after
-        # i. The C version does n=i; and leaves the garbage in place
-        partials[i:] = [x]
-    # BUG: this last step isn't entirely correct and can lose
-    # precision <http://stackoverflow.com/a/2704565/358069>
-    return sum(partials, 0.0)
 -}
 
 ----------------------------------------------------------------

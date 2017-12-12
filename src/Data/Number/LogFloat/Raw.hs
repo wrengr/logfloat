@@ -1,9 +1,9 @@
-{-# LANGUAGE ForeignFunctionInterface, BangPatterns #-}
+{-# LANGUAGE CPP, ForeignFunctionInterface, BangPatterns #-}
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 {-# OPTIONS_GHC -O2 -fexcess-precision -fenable-rewrite-rules #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2017.12.10
+--                                                  ~ 2017.12.11
 -- |
 -- Module      :  Data.Number.LogFloat.Raw
 -- Copyright   :  Copyright (c) 2007--2017 wren gayle romano
@@ -56,17 +56,85 @@ module LogDomain
 import Data.List (foldl')
 
 ----------------------------------------------------------------
--- | Compute @exp x - 1@ without losing precision.
-foreign import ccall unsafe "math.h expm1"
-    expm1 :: Double -> Double
+-- Technically these should use 'Foreign.C.CDouble' however there's
+-- no isomorphism provided to normal 'Double'. The former is
+-- documented as being a newtype of the later, and so this should
+-- be safe.
+
+#ifdef __USE_FFI__
+#define LOG1P_WHICH_VERSION FFI version.
+#else
+#define LOG1P_WHICH_VERSION naive version! \
+    Contact the maintainer with any FFI difficulties.
+#endif
 
 
--- TODO: verify that the Haddock comes out as intended...
 -- | Compute @log (1 + x)@ without losing precision.
+--
+-- Standard C libraries provide a special definition for this
+-- function, which is more accurate than doing the naive thing,
+-- especially for very small arguments. For example, the naive
+-- version underflows around @2 ** -53@, whereas the specialized
+-- version underflows around @2 ** -1074@.
+--
+-- N.B. The @statistics:Statistics.Math@ module provides a pure
+-- Haskell implementation of @log1p@ for those who are interested.
+-- We do not copy it here because it relies on the @vector@ package
+-- which is non-portable. If there is sufficient interest, a portable
+-- variant of that implementation could be made. Contact the
+-- maintainer if the FFI and naive implementations are insufficient
+-- for your needs.
+--
+-- /This installation was compiled to use the LOG1P_WHICH_VERSION/
+
+#ifdef __USE_FFI__
+-- TODO: verify that the Haddock comes out as intended...
 foreign import ccall unsafe "math.h log1p"
     log1p
         :: Double -- ^ N.B., only defined on the @[-1,infty]@ interval.
         -> Double
+#else
+-- See @statistics@:"Statistics.Math" for a more accurate Haskell
+-- implementation.
+log1p
+    :: Double -- ^ N.B., only defined on the @[-1,infty]@ interval.
+    -> Double
+{-# INLINE [0] log1p #-}
+log1p x = log (1 + x)
+#endif
+
+
+-- | Compute @exp x - 1@ without losing precision.
+--
+-- Standard C libraries provide a special definition for 'expm1'
+-- which is more accurate than doing the naive thing, especially
+-- for very small arguments.
+--
+-- /This installation was compiled to use the LOG1P_WHICH_VERSION/
+
+#ifdef __USE_FFI__
+foreign import ccall unsafe "math.h expm1"
+    expm1 :: Double -> Double
+#else
+expm1 :: Double -> Double
+{-# INLINE [0] expm1 #-}
+expm1 x = exp x - 1
+#endif
+
+
+-- CPP guarded because they won't fire if we're using the FFI versions.
+-- TODO: can we get them to fire if we to the standard thing about
+-- naming the FFI version @c_foo@ and then defining a Haskell
+-- function @foo = c_foo@?
+#if !defined(__USE_FFI__)
+{-# RULES
+-- Into log-domain and back out
+"expm1/log1p"    forall x. expm1 (log1p x) = x
+
+-- Out of log-domain and back in
+"log1p/expm1"    forall x. log1p (expm1 x) = x
+    #-}
+#endif
 
 
 -- | Compute @log (1 - exp x)@ without losing precision.
@@ -90,6 +158,10 @@ log1pexp x
 {-# INLINE log1pexp #-}
 
 
+-- TODO: bring back 'expm1c' and 'log1pc'
+
+
+----------------------------------------------------------------
 -- | The logistic function; aka, the inverse of 'logit'.
 -- > sigmoid x = 1 / (1 + exp (-x))
 -- > sigmoid x = exp x / (exp x + 1)
@@ -126,6 +198,7 @@ logitExp x = x - log1mexp x
 -- implementation with respect to the 'logit' implementation.
 
 
+----------------------------------------------------------------
 -- TODO: double check that everything inlines away, so this data
 -- type doesn't introduce any slowdown.
 --
@@ -146,12 +219,17 @@ foldLSE = foldl' step . LSE 0
     step (LSE lm1 m) x = LSE (l + 1) (m `max` x)
 
 
+-- TODO: expose a single-pass version for the special case where
+-- the first element of the list is (promised to be) the maximum
+-- element?
+--
 -- | /O(n)/. Log-domain summation, aka: @(log . sum . fmap exp)@.
 -- Algebraically this is @⨆ xs@, which is the log-domain equivalent
 -- of @∑ xs@.
 --
--- N.B., this requires two passes over the data: one for computing the
--- length and maximum, and one for the summation itself.
+-- /N.B./, this function requires two passes over the input. Thus,
+-- it is not amenable to list fusion, and hence will use a lot of
+-- memory when summing long lists.
 logSumExp :: [Double] -> Double
 logSumExp []         = (-1)/0
 logSumExp xs0@(x:xs) =
@@ -188,10 +266,13 @@ sumExp xs0@(x:xs) =
 -}
 
 
+----------------------------------------------------------------
 -- | /O(n)/. Log-domain softmax, aka: @(fmap log . softmax)@.
 --
--- N.B., this requires three passes over the data: two for the
--- 'logSumExp', and another for the normalization of the vector.
+-- /N.B./, this requires three passes over the data: two for the
+-- 'logSumExp', and a third for the normalization itself. Thus,
+-- it is not amenable to list fusion, and hence will use a lot of
+-- memory when summing long lists.
 logSoftmax :: [Double] -> [Double]
 logSoftmax xs = let z = logSumExp xs in z `seq` fmap (subtract z) xs
 -- TODO(wrengr): alternatively we could use a variant of 'logSumExp'
@@ -219,11 +300,12 @@ logSoftmax xs = let z = logSumExp xs in z `seq` fmap (subtract z) xs
 -- | /O(n)/. Normal-domain softmax:
 -- > softmax xs = [ exp x / sum [ exp y | y <- xs] | x <- xs ]
 --
--- N.B., this requires three passes over the data: same as 'logSoftmax'.
+-- /N.B./, this requires three passes over the data: same as 'logSoftmax'.
 softmax :: [Double] -> [Double]
 softmax = fmap exp . logSoftmax
 
 
+----------------------------------------------------------------
 -- TODO: double check that everything inlines away, so this data
 -- type doesn't introduce any slowdown.
 --
@@ -237,6 +319,7 @@ kahanZero :: Kahan
 kahanZero = Kahan 0 0
 {-# INLINE kahanZero #-}
 
+-- DONOTSUBMIT: if @x == negativeInfinity@ then our use case demands we return negativeInfinity (so that @0 * infinity == 0@ as desired). But moreover, we really want to short-circuit things to avoid even scanning the rest of the list. To do that, we need to re-inline everything and use recursion directly instead of using 'foldl''.
 kahanPlus :: Kahan -> Double -> Kahan
 kahanPlus (Kahan t c) x = Kahan t' c'
     where
@@ -253,8 +336,53 @@ fromKahan (Kahan t _) = t
 -- | /O(n)/. Floating-point summation, via Kahan's algorithm. This
 -- is nominally equivalent to 'sum', but greatly mitigates the
 -- problem of losing precision.
+--
+-- /N.B./, this only requires a single pass over the data; but we
+-- use a strict left fold for performance, so it's still not amenable
+-- to list fusion.
 kahanSum :: [Double] -> Double
 kahanSum = fromKahan . foldl' kahanPlus kahanZero
 
+
 -- TODO: bring back the 'neumaierSum'
--- TODO: bring back 'expm1c' and 'log1pc'
+
+
+-- This version *completely* eliminates rounding errors and loss
+-- of significance due to catastrophic cancellation during summation.
+-- <http://code.activestate.com/recipes/393090/> Also see the other
+-- implementations given there. For Python's actual C implementation,
+-- see math_fsum in
+-- <http://svn.python.org/view/python/trunk/Modules/mathmodule.c?view=markup>
+--
+-- For merely *mitigating* errors rather than completely eliminating
+-- them, see <http://code.activestate.com/recipes/298339/>.
+--
+-- A good test case is @msum([1, 1e100, 1, -1e100] * 10000) == 20000.0@
+{-
+-- For proof of correctness, see
+-- <www-2.cs.cmu.edu/afs/cs/project/quake/public/papers/robust-arithmetic.ps>
+def msum(xs):
+    partials = [] # sorted, non-overlapping partial sums
+    # N.B., the actual C implementation uses a 32 array, doubling size as needed
+    for x in xs:
+        i = 0
+        for y in partials: # for(i = j = 0; j < n; j++)
+            if abs(x) < abs(y):
+                x, y = y, x
+            hi = x + y
+            lo = y - (hi - x)
+            if lo != 0.0:
+                partials[i] = lo
+                i += 1
+            x = hi
+        # does an append of x while dropping all the partials after
+        # i. The C version does n=i; and leaves the garbage in place
+        partials[i:] = [x]
+    # BUG: this last step isn't entirely correct and can lose
+    # precision <http://stackoverflow.com/a/2704565/358069>
+    return sum(partials, 0.0)
+-}
+
+
+----------------------------------------------------------------
+----------------------------------------------------------- fin.
