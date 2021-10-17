@@ -18,12 +18,6 @@ burden.) Thus, this version of the library provides a transitional
 point between backwards compatability and adding new features (see
 below).
 
-Note that the GitHub repository is just a clone of [the Darcs
-repo](http://code.haskell.org/~wren/logfloat/). I'm testing out
-whether to switch things over to GitHub in order to use TravisCI,
-and an official ticket tracker, etc.
-
-
 ## Install
 
 In general, this is a simple package and should be easy to install.
