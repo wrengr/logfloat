@@ -23,25 +23,10 @@ below).
 In general, this is a simple package and should be easy to install.
 The specifics are a bit murky however, since we use CPP and the FFI
 and want to retain portability, and due to the rapid evolution of
-Cabal and other development tools. You should be able to use one
-of the following standard installation methods:
+Cabal and other development tools. However, you should be able to
+use the standard:
 
-    -- With cabal-install and without the source:
     $> cabal install logfloat
-
-    -- With cabal-install and with the source already:
-    $> cd logfloat
-    $> cabal install
-
-    -- Without cabal-install, but with the source already:
-    $> cd logfloat
-    $> runhaskell Setup.hs configure --user
-    $> runhaskell Setup.hs build
-    $> runhaskell Setup.hs haddock --hyperlink-source
-    $> runhaskell Setup.hs copy
-    $> runhaskell Setup.hs register
-
-The Haddock step is optional.
 
 
 ### FFI Problems
