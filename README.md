@@ -245,11 +245,8 @@ support for them.
 
 ## Links
 
-* [Website](http://cl.indiana.edu/~wren/)
+* [Website](http://wrengr.org/)
 * [Blog](http://winterkoninkje.dreamwidth.org/)
 * [Twitter](https://twitter.com/wrengr)
 * [Hackage](http://hackage.haskell.org/package/logfloat)
-* [Darcs](http://code.haskell.org/~wren/logfloat)
-* [GitHub (clone)](https://github.com/wrengr/logfloat)
-* [Haddock (Darcs version)
-    ](http://code.haskell.org/~wren/logfloat/dist/doc/html/logfloat)
+* [GitHub](https://github.com/wrengr/logfloat)
