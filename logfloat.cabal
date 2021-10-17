@@ -1,5 +1,5 @@
 ----------------------------------------------------------------
--- wren gayle romano <wren@community.haskell.org>   ~ 2021.10.16
+-- wren gayle romano <wren@cpan.org>                ~ 2021.10.17
 ----------------------------------------------------------------
 
 -- Cabal >=1.10 is required by Hackage.
@@ -9,10 +9,11 @@ Build-Type:     Simple
 Name:           logfloat
 Version:        0.14.0
 Stability:      experimental
-Homepage:       http://wrengr.org
+Homepage:       https://wrengr.org/software/hackage.html
+Bug-Reports:    https://github.com/wrengr/logfloat/issues
 Author:         wren gayle romano
 Maintainer:     wren@cpan.org
-Copyright:      Copyright (c) 2007--2021 wren gayle romano
+Copyright:      Copyright (c) 2007–2021 wren gayle romano
 License:        BSD3
 License-File:   LICENSE
 
@@ -42,7 +43,7 @@ Tested-With:
 ----------------------------------------------------------------
 Source-Repository head
     Type:     git
-    Location: git://github.com/wrengr/logfloat.git
+    Location: https://github.com/wrengr/logfloat.git
 
 ----------------------------------------------------------------
 Flag useFFI
