@@ -341,7 +341,20 @@ fromKahan (Kahan t _) = t
 -- use a strict left fold for performance, so it's still not amenable
 -- to list fusion.
 kahanSum :: [Double] -> Double
+{-
+-- Alas, this implementation loses the optimization below where we
+-- avoid NaN and short-circuit to return @LogFloat -infty@ aka 0.
 kahanSum = fromKahan . foldl' kahanPlus kahanZero
+-}
+kahanSum = go kahanZero
+    where
+    go tc _ | tc `seq` False = undefined
+    go tc [] = fromKahan tc
+    go tc (x:xs)
+        -- Avoid NaN when there's a negInfty in the list. N.B.,
+        -- this causes zero to annihilate infinity.
+        | x == negativeInfinity = negativeInfinity
+        | otherwise             = go (kahanPlus tc x) xs
 
 
 -- TODO: bring back the 'neumaierSum'

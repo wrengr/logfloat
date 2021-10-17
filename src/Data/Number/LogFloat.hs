@@ -564,24 +564,6 @@ sum = LogFloat . logSumExp . fmap logFromLogFloat
 -- /Since: 0.13/
 product :: [LogFloat] -> LogFloat
 product = LogFloat . kahanSum . fmap logFromLogFloat
--- DONOTSUBMIT: the above version loses the optimization below where we avoid NaN and short-circuit to return @LogFloat -infty@ aka 0
-{-
-    kahan 0 0
-    where
-    kahan t c _ | t `seq` c `seq` False = undefined
-    kahan t _ []                = LogFloat t
-    kahan t c (LogFloat x : xs)
-        -- Avoid NaN when there's a negInfty in the list. N.B.,
-        -- this causes zero to annihilate infinity.
-        | x == negativeInfinity = LogFloat negativeInfinity
-        | otherwise =
-            -- Beware this getting incorrectly optimized away by
-            -- constant folding!
-            let y  = x - c
-                t' = t + y
-                c' = (t' - t) - y
-            in kahan t' c' xs
--}
 
 ----------------------------------------------------------------
 ----------------------------------------------------------- fin.
