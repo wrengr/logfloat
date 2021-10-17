@@ -3,10 +3,10 @@
 {-# OPTIONS_GHC -O2 -fexcess-precision -fenable-rewrite-rules #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2017.12.11
+--                                                  ~ 2021.10.16
 -- |
 -- Module      :  Data.Number.LogFloat.Raw
--- Copyright   :  Copyright (c) 2007--2017 wren gayle romano
+-- Copyright   :  Copyright (c) 2007--2021 wren gayle romano
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
 -- Stability   :  provisional
@@ -33,7 +33,7 @@
 --
 -- /Since: 0.14.0/
 ----------------------------------------------------------------
-module LogDomain
+module Data.Number.LogFloat.Raw
     (
     -- * Logarithmic\/exponential basics
       expm1
@@ -43,7 +43,7 @@ module LogDomain
     -- * Summation
     , logSumExp
     , kahanSum
-    , neumaierSum
+    -- , neumaierSum
     -- * Softmax
     , logSoftmax
     , softmax
@@ -216,7 +216,7 @@ data LSE = LSE
 foldLSE :: Double -> [Double] -> LSE
 foldLSE = foldl' step . LSE 0
     where
-    step (LSE lm1 m) x = LSE (l + 1) (m `max` x)
+    step (LSE lm1 m) x = LSE (lm1 + 1) (m `max` x)
 
 
 -- TODO: expose a single-pass version for the special case where
