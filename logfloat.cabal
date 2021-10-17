@@ -1,21 +1,18 @@
 ----------------------------------------------------------------
--- wren gayle romano <wren@community.haskell.org>   ~ 2017.12.10
+-- wren gayle romano <wren@community.haskell.org>   ~ 2021.10.16
 ----------------------------------------------------------------
 
--- By and large Cabal >=1.2 is fine; but
--- * >=1.6 gives tested-with: and source-repository:
--- * >=1.8 allows executables to build-depends: on the library
--- * >=1.9.2 allows Test-Suite
-Cabal-Version:  >= 1.9.2
+-- Cabal >=1.10 is required by Hackage.
+Cabal-Version:  >= 1.10
 Build-Type:     Simple
 
 Name:           logfloat
 Version:        0.14.0
 Stability:      experimental
-Homepage:       http://code.haskell.org/~wren/
+Homepage:       http://wrengr.org
 Author:         wren gayle romano
-Maintainer:     wren@community.haskell.org
-Copyright:      Copyright (c) 2007--2017 wren gayle romano
+Maintainer:     wren@cpan.org
+Copyright:      Copyright (c) 2007--2021 wren gayle romano
 License:        BSD3
 License-File:   LICENSE
 
@@ -31,22 +28,21 @@ Description:
 Extra-source-files:
     README.md, CHANGELOG
 
--- Cf., <https://travis-ci.org/wrengr/logfloat>
+-- This should work as far back as GHC 7.6.1, but we don't verify that by CI.
+-- <https://github.com/wrengr/logfloat/actions?query=workflow%3Aci>
 Tested-With:
-    GHC ==7.6.1, GHC ==7.6.2, GHC ==7.6.3,
-    GHC ==7.8.1, GHC ==7.8.2, GHC ==7.8.3, GHC ==7.8.4,
-    GHC ==7.10.1, GHC ==7.10.2
+    GHC ==8.0.2,
+    GHC ==8.2.2,
+    GHC ==8.4.4,
+    GHC ==8.6.5,
+    GHC ==8.8.4,
+    GHC ==8.10.3,
+    GHC ==9.0.1
 
 ----------------------------------------------------------------
 Source-Repository head
-    Type:     darcs
-    Location: http://community.haskell.org/~wren/logfloat
-
--- This repo is a clone of the Darcs one, but alas Cabal has no
--- provisions for that sort of thing.
---Source-Repository head
---Type:     git
---Location: git://github.com/wrengr/logfloat.git
+    Type:     git
+    Location: git://github.com/wrengr/logfloat.git
 
 ----------------------------------------------------------------
 Flag useFFI
@@ -58,6 +54,7 @@ Flag useFFI
 
 ----------------------------------------------------------------
 Library
+    Default-Language: Haskell2010
     Hs-Source-Dirs:  src
     Exposed-Modules: Data.Number.LogFloat
                    , Data.Number.LogFloat.Raw
