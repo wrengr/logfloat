@@ -25,7 +25,7 @@
 -- In base-4.9.0.0 GHC added some of these to the 'Floating' class
 -- exported from "Numeric". Alas, they provide default definitions
 -- using the naive implementations, so one can't really rely on the
--- 'Floating' methods being precision presrving. Overall, the
+-- 'Floating' methods being precision preserving. Overall, the
 -- specific instance for 'Double' looks fine (though they use
 -- different cutoffs for 'log1pexp' for some reason); but it's easy
 -- enough to reimplement here, to make absolutely sure we're getting
