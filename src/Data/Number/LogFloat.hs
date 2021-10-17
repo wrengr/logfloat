@@ -14,10 +14,10 @@
 {-# OPTIONS_GHC -O2 -fexcess-precision -fenable-rewrite-rules #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2017.12.11
+--                                                  ~ 2021.10.16
 -- |
 -- Module      :  Data.Number.LogFloat
--- Copyright   :  Copyright (c) 2007--2017 wren gayle romano
+-- Copyright   :  Copyright (c) 2007--2021 wren gayle romano
 -- License     :  BSD3
 -- Maintainer  :  wren@community.haskell.org
 -- Stability   :  stable
@@ -62,7 +62,6 @@ module Data.Number.LogFloat
     ) where
 
 import Prelude hiding (log, sum, product, isInfinite, isNaN)
-import Data.List (foldl')
 
 import Data.Number.Transfinite
 import Data.Number.PartialOrd

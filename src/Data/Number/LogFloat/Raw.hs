@@ -54,6 +54,7 @@ module Data.Number.LogFloat.Raw
     ) where
 
 import Data.List (foldl')
+import Data.Number.Transfinite (negativeInfinity)
 
 ----------------------------------------------------------------
 -- Technically these should use 'Foreign.C.CDouble' however there's
