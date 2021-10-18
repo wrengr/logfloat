@@ -1,12 +1,12 @@
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2010.03.19
+--                                                  ~ 2021.10.17
 -- |
 -- Module      :  Data.Number.LogFloat.Corners
--- Copyright   :  Copyright (c) 2007--2010 wren gayle romano
+-- Copyright   :  Copyright (c) 2007--2021 wren gayle romano
 -- License     :  BSD3
--- Maintainer  :  wren@community.haskell.org
+-- Maintainer  :  wren@cpan.org
 -- Stability   :  stable
 -- Portability :  portable (with CPP)
 --
@@ -41,10 +41,10 @@ main = do
         where
         show3 (x,y,z) = sh x ++" "++op++" "++ sh y ++" == "++ sh z
         sh = take 3 . show
-    
+
     fromLFs :: (LogFloat,LogFloat,LogFloat) -> (Double,Double,Double)
     fromLFs (x,y,z) = (fromLogFloat x, fromLogFloat y, fromLogFloat z)
-    
+
     inf = logFloat (infinity::Double)
 
 ----------------------------------------------------------------

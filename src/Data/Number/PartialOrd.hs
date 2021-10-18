@@ -10,15 +10,15 @@
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2015.03.29
+--                                                  ~ 2021.10.17
 -- |
 -- Module      :  Data.Number.PartialOrd
--- Copyright   :  Copyright (c) 2007--2015 wren gayle romano
+-- Copyright   :  Copyright (c) 2007--2021 wren gayle romano
 -- License     :  BSD3
--- Maintainer  :  wren@community.haskell.org
+-- Maintainer  :  wren@cpan.org
 -- Stability   :  stable
 -- Portability :  semi-portable (OverlappingInstances,...)
--- 
+--
 -- The Prelude's 'Ord' class for dealing with ordered types is often
 -- onerous to use because it requires 'Eq' as well as a total
 -- ordering. While such total orderings are common, partial orderings
@@ -49,49 +49,49 @@ import Hugs.RealFloat (isNaN)
 class PartialOrd a where
     -- | like 'compare'
     cmp   :: a -> a -> Maybe Ordering
-    
+
     -- | like ('>')
     gt    :: a -> a -> Maybe Bool
     gt x y = case x `cmp` y of
              Just GT -> Just True
              Just _  -> Just False
              Nothing -> Nothing
-    
+
     -- | like ('>=')
     ge    :: a -> a -> Maybe Bool
     ge x y = case x `cmp` y of
              Just LT -> Just False
              Just _  -> Just True
              Nothing -> Nothing
-    
+
     -- | like ('==')
     eq    :: a -> a -> Maybe Bool
     eq x y = case x `cmp` y of
              Just EQ -> Just True
              Just _  -> Just False
              Nothing -> Nothing
-    
+
     -- | like ('/=')
     ne    :: a -> a -> Maybe Bool
     ne x y = case x `cmp` y of
              Just EQ -> Just False
              Just _  -> Just True
              Nothing -> Nothing
-    
+
     -- | like ('<=')
     le    :: a -> a -> Maybe Bool
     le x y = case x `cmp` y of
              Just GT -> Just False
              Just _  -> Just True
              Nothing -> Nothing
-    
+
     -- | like ('<')
     lt    :: a -> a -> Maybe Bool
     lt x y = case x `cmp` y of
              Just LT -> Just True
              Just _  -> Just False
              Nothing -> Nothing
-    
+
     -- | like 'max'. The default instance returns the left argument
     -- when they're equal.
     maxPO    :: a -> a -> Maybe a
@@ -100,7 +100,7 @@ class PartialOrd a where
                        GT -> Just x
                        EQ -> Just x
                        LT -> Just y
-    
+
     -- | like 'min'. The default instance returns the left argument
     -- when they're equal.
     minPO    :: a -> a -> Maybe a

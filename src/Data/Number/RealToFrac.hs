@@ -9,22 +9,22 @@
 #if __GLASGOW_HASKELL__ < 710
 {-# LANGUAGE OverlappingInstances #-}
 #endif
-           
+
 -- We don't put these in LANGUAGE, because it's CPP guarded for GHC only
 {-# OPTIONS_GHC -XMagicHash #-}
 
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2013.05.29
+--                                                  ~ 2021.10.17
 -- |
 -- Module      :  Data.Number.RealToFrac
--- Copyright   :  Copyright (c) 2007--2015 wren gayle romano
+-- Copyright   :  Copyright (c) 2007--2021 wren gayle romano
 -- License     :  BSD3
--- Maintainer  :  wren@community.haskell.org
+-- Maintainer  :  wren@cpan.org
 -- Stability   :  stable
 -- Portability :  semi-portable (CPP, MPTC, OverlappingInstances)
--- 
+--
 -- This module presents a type class for generic conversion between
 -- numeric types, generalizing @realToFrac@ in order to overcome
 -- problems with pivoting through 'Rational'
@@ -138,7 +138,7 @@ instance
     RealToFrac Float Double where
     {-# INLINE realToFrac #-}
     realToFrac (F# f) = D# (float2Double# f)
-    
+
 instance
 #if __GLASGOW_HASKELL__ >= 710
     {-# OVERLAPPING #-}

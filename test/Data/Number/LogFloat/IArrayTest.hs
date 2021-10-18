@@ -3,12 +3,12 @@
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2009.03.07
+--                                                  ~ 2021.10.17
 -- |
 -- Module      :  Data.Number.LogFloat.IArrayTest
--- Copyright   :  Copyright (c) 2007--2009 wren gayle romano
+-- Copyright   :  Copyright (c) 2007--2021 wren gayle romano
 -- License     :  BSD3
--- Maintainer  :  wren@community.haskell.org
+-- Maintainer  :  wren@cpan.org
 -- Stability   :  stable
 -- Portability :  portable (with CPP)
 --
@@ -41,7 +41,7 @@ prop_listArray :: [Double] -> Bool
 prop_listArray xs  =  xs' == U.elems arr
     where
     xs' = map (logFloat . abs) xs
-    
+
     arr  :: UArray Int LogFloat
     arr   = U.listArray (1, length xs') xs'
 
@@ -50,7 +50,7 @@ prop_accumArray :: [Double] -> Bool
 prop_accumArray xs  =  product xs' == arr U.! 1
     where
     xs' = map (logFloat . abs) xs
-    
+
     arr  :: UArray Int LogFloat
     arr   = U.accumArray (*) 1 (1, 1) [(1,x) | x <- xs']
 
@@ -59,14 +59,14 @@ main :: IO ()
 main = do
     quickCheck prop_listArray
     quickCheck prop_accumArray
-    
+
     -- Trying to guard on the length of the list won't work. Using
     -- SmallCheck instead
 #ifdef __USE_SMALLCHECK__
     smallCheck 5 prop_listArray
     smallCheck 5 prop_accumArray
 #endif
-    
+
     checkMore 1000 prop_listArray
     checkMore 1000 prop_accumArray
     where

@@ -11,15 +11,15 @@
 #define REALFLOAT_VERSION normal Prelude version. This could be buggy.
 #endif
 ----------------------------------------------------------------
---                                                  ~ 2013.05.11
+--                                                  ~ 2021.10.17
 -- |
 -- Module      :  Hugs.RealFloat
--- Copyright   :  Copyright (c) 2007--2015 wren gayle romano
+-- Copyright   :  Copyright (c) 2007--2021 wren gayle romano
 -- License     :  BSD3
--- Maintainer  :  wren@community.haskell.org
+-- Maintainer  :  wren@cpan.org
 -- Stability   :  stable
 -- Portability :  portable (with CPP)
--- 
+--
 -- Hugs (September 2006) has buggy definitions for 'Prelude.isNaN'
 -- and 'Prelude.isInfinite' on Float and Double. If this module is
 -- run through CPP with the macro @__HUGS__@ set to a value no

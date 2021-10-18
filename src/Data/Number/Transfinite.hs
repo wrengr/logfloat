@@ -1,22 +1,22 @@
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 {-# OPTIONS_GHC -O2 -fenable-rewrite-rules #-}
 ----------------------------------------------------------------
---                                                  ~ 2015.03.29
+--                                                  ~ 2021.10.17
 -- |
 -- Module      :  Data.Number.Transfinite
--- Copyright   :  Copyright (c) 2007--2015 wren gayle romano
+-- Copyright   :  Copyright (c) 2007--2021 wren gayle romano
 -- License     :  BSD3
--- Maintainer  :  wren@community.haskell.org
+-- Maintainer  :  wren@cpan.org
 -- Stability   :  stable
 -- Portability :  portable
--- 
+--
 -- This module presents a type class for numbers which have
 -- representations for transfinite values. The idea originated from
 -- the IEEE-754 floating-point special values, used by
 -- "Data.Number.LogFloat". However not all 'Fractional' types
 -- necessarily support transfinite values. In particular, @Ratio@
 -- types including 'Rational' do not have portable representations.
--- 
+--
 -- For the Glasgow compiler (GHC 6.8.2), "GHC.Real" defines @1%0@
 -- and @0%0@ as representations for 'infinity' and 'notANumber',
 -- but most operations on them will raise exceptions. If 'toRational'
@@ -29,7 +29,7 @@
 -- * <http://www.haskell.org/pipermail/haskell-prime/2006-February/000791.html>
 --
 -- * <http://www.haskell.org/pipermail/haskell-prime/2006-February/000821.html>
--- 
+--
 -- Hugs (September 2006) stays closer to the haskell98 spec and
 -- offers no way of constructing those values, raising arithmetic
 -- overflow errors if attempted.
@@ -68,24 +68,24 @@ import Data.Number.PartialOrd
 -- is compiled correctly.
 
 class (PartialOrd a) => Transfinite a where
-    
+
     -- | A transfinite value which is greater than all finite values.
     -- Adding or subtracting any finite value is a no-op. As is
     -- multiplying by any non-zero positive value (including
     -- @infinity@), and dividing by any positive finite value. Also
     -- obeys the law @negate infinity = negativeInfinity@ with all
     -- appropriate ramifications.
-    
+
     infinity :: a
-    
-    
+
+
     -- | A transfinite value which is less than all finite values.
     -- Obeys all the same laws as @infinity@ with the appropriate
     -- changes for the sign difference.
-    
+
     negativeInfinity :: a
-    
-    
+
+
     -- | An exceptional transfinite value for dealing with undefined
     -- results when manipulating infinite values. The following
     -- operations must return @notANumber@, where @inf@ is any value
@@ -118,14 +118,14 @@ class (PartialOrd a) => Transfinite a where
     -- for 'Eq'; thus, 'eq' and 'ne' are preferred over ('==') and
     -- ('/=')). Since it returns false for equality, there may be
     -- more than one machine representation of this `value'.
-    
+
     notANumber :: a
-    
-    
+
+
     -- | Return true for both @infinity@ and @negativeInfinity@,
     -- false for all other values.
     isInfinite :: a -> Bool
-    
+
     -- | Return true only for @notANumber@.
     isNaN      :: a -> Bool
 
