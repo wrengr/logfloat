@@ -3,11 +3,11 @@
 {-# OPTIONS_GHC -O2 -fexcess-precision -fenable-rewrite-rules #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2021.10.17
+--                                                  ~ 2022.03.14
 -- |
 -- Module      :  Data.Number.LogFloat.Raw
--- Copyright   :  Copyright (c) 2007--2021 wren gayle romano
--- License     :  BSD3
+-- Copyright   :  2007--2022 wren romano
+-- License     :  BSD-3-Clause
 -- Maintainer  :  wren@cpan.org
 -- Stability   :  provisional
 -- Portability :  portable (with CPP, FFI)
@@ -31,7 +31,7 @@
 -- enough to reimplement here, to make absolutely sure we're getting
 -- the right thing.
 --
--- /Since: 0.14.0/
+-- @since: 0.14.0
 ----------------------------------------------------------------
 module Data.Number.LogFloat.Raw
     (
@@ -304,6 +304,7 @@ logSoftmax xs = let z = logSumExp xs in z `seq` fmap (subtract z) xs
 -- /N.B./, this requires three passes over the data: same as 'logSoftmax'.
 softmax :: [Double] -> [Double]
 softmax = fmap exp . logSoftmax
+{-# INLINE softmax #-}
 
 
 ----------------------------------------------------------------
