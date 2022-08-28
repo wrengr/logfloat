@@ -6,7 +6,7 @@ Cabal-Version:  2.2
 --    <https://github.com/haskell/cabal/issues/4899>
 
 ----------------------------------------------------------------
--- wren gayle romano <wren@cpan.org>                ~ 2022.05.25
+-- wren gayle romano <wren@cpan.org>                ~ 2022.08.28
 ----------------------------------------------------------------
 
 Name:           logfloat
@@ -44,7 +44,8 @@ Tested-With:
     GHC ==8.8.4,
     GHC ==8.10.3,
     GHC ==9.0.1,
-    GHC ==9.2.1
+    GHC ==9.2.4,
+    GHC ==9.4.1
 
 ----------------------------------------------------------------
 Source-Repository head
