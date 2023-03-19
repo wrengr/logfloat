@@ -6,7 +6,7 @@ Cabal-Version:  2.2
 --    <https://github.com/haskell/cabal/issues/4899>
 
 ----------------------------------------------------------------
--- wren gayle romano <wren@cpan.org>                ~ 2022.08.28
+-- wren gayle romano <wren@cpan.org>                ~ 2023.03.19
 ----------------------------------------------------------------
 
 Name:           logfloat
@@ -17,7 +17,7 @@ Homepage:       https://wrengr.org/software/hackage.html
 Bug-Reports:    https://github.com/wrengr/logfloat/issues
 Author:         wren gayle romano
 Maintainer:     wren@cpan.org
-Copyright:      2007–2022 wren romano
+Copyright:      2007–2023 wren romano
 -- Cabal-2.2 requires us to say "BSD-3-Clause" not "BSD3"
 License:        BSD-3-Clause
 License-File:   LICENSE
@@ -45,7 +45,8 @@ Tested-With:
     GHC ==8.10.3,
     GHC ==9.0.1,
     GHC ==9.2.4,
-    GHC ==9.4.1
+    GHC ==9.4.4,
+    GHC ==9.6.1
 
 ----------------------------------------------------------------
 Source-Repository head
