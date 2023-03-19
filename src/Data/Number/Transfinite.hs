@@ -1,5 +1,16 @@
 {-# OPTIONS_GHC -Wall -fwarn-tabs #-}
 {-# OPTIONS_GHC -O2 -fenable-rewrite-rules #-}
+
+-- FIXME(2023-03-19): Since recent versions of GHC the rewrite rules
+-- in this file generate warnings that they may never fire because
+-- the rule "Class op exp" may fire first.  Although the warning
+-- suggests adding a phase limit, that doesn't actually help because
+-- the "Class op exp" rule is a built-in.  So it's not actually
+-- clear how to silence this warning:
+-- <https://gitlab.haskell.org/ghc/ghc/-/issues/10595>
+--
+-- So for now we just silence the warnings.
+{-# OPTIONS_GHC -fno-warn-inline-rule-shadowing #-}
 ----------------------------------------------------------------
 --                                                  ~ 2021.10.17
 -- |
@@ -194,6 +205,14 @@ log x = case x `cmp` 0 of
 
 ----------------------------------------------------------------
 -- These rules moved here from "LogFloat" in v0.11.2
+--
+-- FIXME(2023-03-19): Since recent versions of GHC these rules
+-- generate warnings that they may never fire because the rule
+-- "Class op exp" may fire first.  Although the warning suggests
+-- adding a phase limit, that doesn't actually help because the
+-- "Class op exp" rule is a built-in.  So it's not actually clear
+-- how to silence this warning:
+-- <https://gitlab.haskell.org/ghc/ghc/-/issues/10595>
 {-# RULES
 "log/exp"  forall x. log (exp x) = x
 "exp/log"  forall x. exp (log x) = x
