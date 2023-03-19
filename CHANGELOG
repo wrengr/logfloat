@@ -1,4 +1,4 @@
-0.14.0 (2021-xx-xx):
+0.14.0 (2021-03-19):
 	- Separating out "Data.Number.LogFloat.Raw"
     - Added `Tested-With: GHC == 9.2.4, 9.4.4, 9.6.1` (didn't actually need to
       nudge the upper bound on 'base', because it's already lenient)
