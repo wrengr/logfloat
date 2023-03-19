@@ -2,6 +2,8 @@
 	- Separating out "Data.Number.LogFloat.Raw"
     - Added `Tested-With: GHC == 9.2.4, 9.4.4, 9.6.1` (didn't actually need to
       nudge the upper bound on 'base', because it's already lenient)
+    - Silencing warnings about rewrite rules, as a hack for working around:
+      <https://gitlab.haskell.org/ghc/ghc/-/issues/10595>
 0.13.4 (2017-06-18):
     - Added Read LogFloat instance. (h/t Rob Zinkov)
     - Corrected a bug where `product` returns NaN on `logFloat 0`.
