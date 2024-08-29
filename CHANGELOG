@@ -1,3 +1,5 @@
+0.14.0.1 (2024-08-29):
+    - Nudged version bounds for ghc 9.10
 0.14.0 (2021-03-19):
 	- Separating out "Data.Number.LogFloat.Raw"
     - Added `Tested-With: GHC == 9.2.4, 9.4.4, 9.6.1` (didn't actually need to
