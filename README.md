@@ -1,8 +1,9 @@
 logfloat
 ========
+[![CI Status](https://github.com/wrengr/logfloat/actions/workflows/ci.yml/badge.svg)](https://github.com/wrengr/logfloat/actions?query=workflow%3Aci+-event%3Apull_request)
 [![Hackage version](https://img.shields.io/hackage/v/logfloat.svg?style=flat)](https://hackage.haskell.org/package/logfloat)
-[![Build Status](https://github.com/wrengr/logfloat/workflows/ci/badge.svg)](https://github.com/wrengr/logfloat/actions?query=workflow%3Aci)
-[![Dependencies](https://img.shields.io/hackage-deps/v/logfloat.svg?style=flat)](http://packdeps.haskellers.com/specific?package=logfloat)
+[![Stackage LTS version](https://stackage.org/package/logfloat/badge/lts)](https://stackage.org/lts/package/logfloat)
+[![Stackage Nightly version](https://stackage.org/package/logfloat/badge/nightly)](https://stackage.org/nightly/package/logfloat)
 
 This package provides a type for storing numbers in the log-domain,
 primarily useful for preventing underflow when multiplying many
