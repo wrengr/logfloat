@@ -1,3 +1,5 @@
+0.14.0.2 (2026-02-28):
+    - Nudged version bounds for ghc 9.14 (didn't actually need to change the upper bounds on 'base' and 'array', because they were already lenient)
 0.14.0.1 (2024-08-29):
     - Nudged version bounds for ghc 9.10
 0.14.0 (2021-03-19):
