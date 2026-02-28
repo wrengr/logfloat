@@ -3,10 +3,10 @@
 {-# OPTIONS_GHC -O2 -fexcess-precision -fenable-rewrite-rules #-}
 
 ----------------------------------------------------------------
---                                                  ~ 2022.03.14
+--                                                  ~ 2026-02-28
 -- |
 -- Module      :  Data.Number.LogFloat.Raw
--- Copyright   :  2007--2022 wren romano
+-- Copyright   :  2007--2026 wren romano
 -- License     :  BSD-3-Clause
 -- Maintainer  :  wren@cpan.org
 -- Stability   :  provisional
@@ -53,7 +53,9 @@ module Data.Number.LogFloat.Raw
     , logitExp
     ) where
 
+#if __GLASGOW_HASKELL__ < 910
 import Data.List (foldl')
+#endif
 import Data.Number.Transfinite (negativeInfinity)
 
 ----------------------------------------------------------------
